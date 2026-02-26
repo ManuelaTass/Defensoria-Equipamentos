@@ -140,6 +140,19 @@ export async function registerRoutes(
     res.json(userList);
   });
 
+  app.post(api.users.create.path, async (req, res) => {
+    try {
+      const input = api.users.create.input.parse(req.body);
+      const user = await storage.createUser(input);
+      res.status(201).json(user);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({ message: err.errors[0].message });
+      }
+      throw err;
+    }
+  });
+
   // Basic seed function
   await seedDatabase();
 

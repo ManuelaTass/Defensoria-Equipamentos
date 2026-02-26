@@ -147,6 +147,15 @@ export const api = {
       responses: {
         200: z.array(userResponseSchema),
       },
+    },
+    create: {
+      method: 'POST' as const,
+      path: '/api/users' as const,
+      input: insertUserSchema,
+      responses: {
+        201: userResponseSchema,
+        400: errorSchemas.validation,
+      },
     }
   }
 };

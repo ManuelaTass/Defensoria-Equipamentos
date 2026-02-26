@@ -2,19 +2,109 @@ import { Layout } from "@/components/layout";
 import { useUsers } from "@/hooks/use-users";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Users } from "lucide-react";
+import { Loader2, Users, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { 
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter 
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function TechniciansPage() {
   const { data: users, isLoading } = useUsers();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const createUser = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", "/api/users", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setIsDialogOpen(false);
+      toast({ title: "Sucesso", description: "Técnico cadastrado com sucesso." });
+    },
+    onError: () => {
+      toast({ title: "Erro", description: "Ocorreu um erro ao cadastrar.", variant: "destructive" });
+    }
+  });
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    createUser.mutate({
+      name: formData.get("name") as string,
+      username: formData.get("username") as string,
+      password: "password", // default password
+      role: formData.get("role") as string,
+    });
+  };
 
   const technicians = users?.filter(u => u.role === 'technician' || u.role === 'almoxarifado') || [];
 
   return (
     <Layout>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">Equipe e Técnicos</h1>
-        <p className="text-muted-foreground mt-1">Servidores disponíveis para escalação nos Itinerantes.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Equipe e Técnicos</h1>
+          <p className="text-muted-foreground mt-1">Servidores disponíveis para escalação nos Itinerantes.</p>
+        </div>
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20">
+              <Plus className="mr-2 h-4 w-4" /> Cadastrar Servidor
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <form onSubmit={handleSubmit}>
+              <DialogHeader>
+                <DialogTitle>Novo Servidor</DialogTitle>
+                <DialogDescription>
+                  Adicione um novo técnico ou servidor de almoxarifado à equipe.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="grid gap-5 py-6">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Nome Completo</Label>
+                  <Input id="name" name="name" placeholder="Ex: Carlos Silva" required />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="username">Usuário de Rede</Label>
+                  <Input id="username" name="username" placeholder="Ex: carlos.silva" required />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="role">Lotação / Cargo</Label>
+                  <Select name="role" defaultValue="technician">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o cargo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="technician">Técnico de TI</SelectItem>
+                      <SelectItem value="almoxarifado">Almoxarifado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                <Button type="submit" disabled={createUser.isPending}>
+                  {createUser.isPending ? "Cadastrando..." : "Cadastrar"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card className="shadow-lg border-border/50 overflow-hidden bg-card">
