@@ -21,7 +21,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useParams, Link } from "wouter";
-import { Loader2, ArrowLeft, Calendar, MapPin, CheckCircle2, ChevronRight, Package, UserPlus } from "lucide-react";
+import { Loader2, ArrowLeft, Calendar, MapPin, CheckCircle2, ChevronRight, Package, UserPlus, Plus } from "lucide-react";
 import { EventStatusBadge, EventEquipmentStatusBadge } from "@/components/status-badges";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
