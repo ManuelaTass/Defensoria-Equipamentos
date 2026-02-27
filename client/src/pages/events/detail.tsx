@@ -95,7 +95,7 @@ export default function EventDetailPage() {
   ) || [];
 
   const availableTechsToAdd = allUsers?.filter(u => 
-    u.role === 'technician' && !event.technicians.some(et => et.technicianId === u.id)
+    ['technician', 'defender', 'advisor', 'almoxarifado'].includes(u.role) && !event.technicians.some(et => et.technicianId === u.id)
   ) || [];
 
   return (
@@ -322,90 +322,136 @@ export default function EventDetailPage() {
         </TabsContent>
 
         <TabsContent value="technicians" className="animate-in fade-in-50 duration-300">
-          <Card className="shadow-md border-border/50">
-            <CardHeader className="flex flex-row items-center justify-between bg-secondary/20 border-b pb-4">
-              <div>
-                <CardTitle>Equipe Técnica</CardTitle>
-                <CardDescription>Técnicos de TI e Almoxarifado escalados.</CardDescription>
-              </div>
-              <Dialog open={isTechDialogOpen} onOpenChange={setIsTechDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="bg-primary hover:bg-primary/90"><UserPlus className="w-4 h-4 mr-2"/> Adicionar Técnico</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <form onSubmit={handleAddTechnician}>
-                    <DialogHeader>
-                      <DialogTitle>Vincular Técnico</DialogTitle>
-                      <DialogDescription>Adicione um servidor para atuar neste evento.</DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-5 py-6">
-                      <div className="grid gap-2">
-                        <Label htmlFor="technicianId">Selecione o Servidor</Label>
-                        <Select name="technicianId" required>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Escolha..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableTechsToAdd.map(t => (
-                              <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
-                            ))}
-                            {availableTechsToAdd.length === 0 && (
-                              <SelectItem value="none" disabled>Nenhum técnico disponível</SelectItem>
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="daysParticipating">Dias de Participação</Label>
-                        <Input type="number" id="daysParticipating" name="daysParticipating" min="1" defaultValue="1" required />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button type="button" variant="outline" onClick={() => setIsTechDialogOpen(false)}>Cancelar</Button>
-                      <Button type="submit" disabled={addTechnician.isPending || availableTechsToAdd.length === 0}>Vincular</Button>
-                    </DialogFooter>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </CardHeader>
-            <CardContent className="p-0">
-              {event.technicians.length === 0 ? (
-                <div className="p-12 text-center text-muted-foreground">
-                  <UserPlus className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                  <p>Nenhum técnico escalado para este evento.</p>
+          <div className="space-y-6">
+            {/* Defensores e Assessores */}
+            <Card className="shadow-md border-border/50">
+              <CardHeader className="flex flex-row items-center justify-between bg-emerald-50/20 border-b pb-4">
+                <div>
+                  <CardTitle className="text-emerald-800">Defensores e Assessores</CardTitle>
+                  <CardDescription>Membros jurídicos escalados para o atendimento.</CardDescription>
                 </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Técnico</TableHead>
-                      <TableHead>Dias Participando</TableHead>
-                      <TableHead className="text-right">Chamado de Lotação (GLPI)</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {event.technicians.map((tech) => (
-                      <TableRow key={tech.id} className="hover:bg-secondary/10">
-                        <TableCell className="font-medium text-foreground">{tech.technician.name}</TableCell>
-                        <TableCell>{tech.daysParticipating} dias</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end items-center gap-3">
-                            <span className="text-xs text-muted-foreground">{tech.ticketCreated ? "Criado" : "Pendente"}</span>
+                <Dialog open={isTechDialogOpen} onOpenChange={setIsTechDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="bg-primary hover:bg-primary/90"><UserPlus className="w-4 h-4 mr-2"/> Adicionar Membro</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <form onSubmit={handleAddTechnician}>
+                      <DialogHeader>
+                        <DialogTitle>Vincular Membro à Equipe</DialogTitle>
+                        <DialogDescription>Adicione um defensor, assessor ou técnico para este evento.</DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-5 py-6">
+                        <div className="grid gap-2">
+                          <Label htmlFor="technicianId">Selecione o Servidor</Label>
+                          <Select name="technicianId" required>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Escolha..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableTechsToAdd.map(t => (
+                                <SelectItem key={t.id} value={t.id.toString()}>{t.name} ({t.role})</SelectItem>
+                              ))}
+                              {availableTechsToAdd.length === 0 && (
+                                <SelectItem value="none" disabled>Nenhum membro disponível</SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="daysParticipating">Dias de Participação</Label>
+                          <Input type="number" id="daysParticipating" name="daysParticipating" min="1" defaultValue="1" required />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => setIsTechDialogOpen(false)}>Cancelar</Button>
+                        <Button type="submit" disabled={addTechnician.isPending || availableTechsToAdd.length === 0}>Vincular</Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent className="p-0">
+                {event.technicians.filter(t => ['defender', 'advisor'].includes(t.technician.role)).length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground italic text-sm">
+                    Nenhum defensor ou assessor vinculado.
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Cargo</TableHead>
+                        <TableHead>Dias</TableHead>
+                        <TableHead className="text-right">Chamado GLPI</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {event.technicians.filter(t => ['defender', 'advisor'].includes(t.technician.role)).map((tech) => (
+                        <TableRow key={tech.id}>
+                          <TableCell className="font-medium">{tech.technician.name}</TableCell>
+                          <TableCell>
+                            {tech.technician.role === 'defender' ? 'Defensor(a)' : 'Assessor(a)'}
+                          </TableCell>
+                          <TableCell>{tech.daysParticipating}</TableCell>
+                          <TableCell className="text-right">
                             <Switch 
                               checked={tech.ticketCreated} 
                               onCheckedChange={(checked) => updateTechnician.mutate({ eventId: event.id, technicianId: tech.id, ticketCreated: checked })}
                               disabled={updateTechnician.isPending}
-                              className="data-[state=checked]:bg-emerald-500"
                             />
-                          </div>
-                        </TableCell>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Equipe Técnica (TI e Almoxarifado) */}
+            <Card className="shadow-md border-border/50">
+              <CardHeader className="bg-blue-50/20 border-b pb-4">
+                <CardTitle className="text-blue-800">Equipe de TI e Apoio</CardTitle>
+                <CardDescription>Técnicos e responsáveis pelo Almoxarifado.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {event.technicians.filter(t => ['technician', 'almoxarifado'].includes(t.technician.role)).length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground italic text-sm">
+                    Nenhum técnico vinculado.
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Cargo</TableHead>
+                        <TableHead>Dias</TableHead>
+                        <TableHead className="text-right">Chamado GLPI</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {event.technicians.filter(t => ['technician', 'almoxarifado'].includes(t.technician.role)).map((tech) => (
+                        <TableRow key={tech.id}>
+                          <TableCell className="font-medium">{tech.technician.name}</TableCell>
+                          <TableCell>
+                            {tech.technician.role === 'technician' ? 'Técnico de TI' : 'Almoxarifado'}
+                          </TableCell>
+                          <TableCell>{tech.daysParticipating}</TableCell>
+                          <TableCell className="text-right">
+                            <Switch 
+                              checked={tech.ticketCreated} 
+                              onCheckedChange={(checked) => updateTechnician.mutate({ eventId: event.id, technicianId: tech.id, ticketCreated: checked })}
+                              disabled={updateTechnician.isPending}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </Layout>

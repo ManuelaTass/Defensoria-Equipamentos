@@ -48,7 +48,7 @@ export default function TechniciansPage() {
     });
   };
 
-  const technicians = users?.filter(u => u.role === 'technician' || u.role === 'almoxarifado') || [];
+  const technicians = users?.filter(u => ['technician', 'defender', 'advisor', 'almoxarifado'].includes(u.role)) || [];
 
   return (
     <Layout>
@@ -90,6 +90,8 @@ export default function TechniciansPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="technician">Técnico de TI</SelectItem>
+                      <SelectItem value="defender">Defensor(a)</SelectItem>
+                      <SelectItem value="advisor">Assessor(a)</SelectItem>
                       <SelectItem value="almoxarifado">Almoxarifado</SelectItem>
                     </SelectContent>
                   </Select>
@@ -137,9 +139,16 @@ export default function TechniciansPage() {
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">{user.username}</TableCell>
                   <TableCell className="text-right">
-                    {user.role === 'technician' ? (
+                    {user.role === 'technician' && (
                       <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">Técnico de TI</Badge>
-                    ) : (
+                    )}
+                    {user.role === 'defender' && (
+                      <Badge variant="outline" className="border-emerald-200 text-emerald-700 bg-emerald-50">Defensor(a)</Badge>
+                    )}
+                    {user.role === 'advisor' && (
+                      <Badge variant="outline" className="border-purple-200 text-purple-700 bg-purple-50">Assessor(a)</Badge>
+                    )}
+                    {user.role === 'almoxarifado' && (
                       <Badge variant="outline" className="border-amber-200 text-amber-700 bg-amber-50">Almoxarifado</Badge>
                     )}
                   </TableCell>
