@@ -165,6 +165,34 @@ export default function EventDetailPage() {
                   <p className="text-sm text-muted-foreground mb-1">Status Geral</p>
                   <EventStatusBadge status={event.status} />
                 </div>
+                <div className="pt-4 border-t">
+                  <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    Localização no Mapa
+                  </p>
+                  <div className="h-[250px] w-full rounded-xl border overflow-hidden shadow-inner bg-secondary/20 relative group">
+                     <iframe 
+                      width="100%" 
+                      height="100%" 
+                      frameBorder="0" 
+                      style={{ border: 0 }}
+                      src={`https://www.google.com/maps/embed/v1/place?key=AIzaSy...&q=${encodeURIComponent(event.location)}`}
+                      allowFullScreen
+                      className="grayscale opacity-80 contrast-125"
+                    ></iframe>
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/40 backdrop-blur-[1px] group-hover:backdrop-blur-none transition-all cursor-default pointer-events-none">
+                       <div className="bg-background/90 px-4 py-2 rounded-full shadow-lg border border-primary/20 flex items-center gap-2 animate-bounce">
+                        <MapPin className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-bold text-primary">MAPA ATIVO: {event.location}</span>
+                       </div>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" className="w-full mt-3 text-xs gap-2" asChild>
+                    <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`} target="_blank" rel="noreferrer">
+                      Abrir no Google Maps <ChevronRight className="h-3 w-3" />
+                    </a>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 

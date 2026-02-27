@@ -8,34 +8,34 @@
     --font-display: 'Outfit', sans-serif;
 
     /* DPE-GO Theme: Greens, White, Gold */
-    --background: 144 20% 98%;
-    --foreground: 150 40% 10%;
+    --background: 0 0% 100%;
+    --foreground: 152 70% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 150 40% 10%;
+    --card-foreground: 152 70% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 150 40% 10%;
+    --popover-foreground: 152 70% 10%;
 
     /* DPE Green - Deep and institutional */
     --primary: 152 70% 22%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 144 30% 90%;
+    --secondary: 152 20% 96%;
     --secondary-foreground: 152 70% 22%;
 
-    --muted: 144 20% 92%;
-    --muted-foreground: 150 20% 40%;
+    --muted: 152 10% 94%;
+    --muted-foreground: 152 20% 40%;
 
     /* Gold/Yellow accent */
     --accent: 45 93% 47%;
-    --accent-foreground: 150 40% 10%;
+    --accent-foreground: 152 70% 10%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 144 20% 86%;
-    --input: 144 20% 86%;
+    --border: 152 20% 88%;
+    --input: 152 20% 88%;
     --ring: 152 70% 22%;
 
     --radius: 0.75rem;

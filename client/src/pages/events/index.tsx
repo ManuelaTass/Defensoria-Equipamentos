@@ -93,6 +93,20 @@ export default function EventsPage() {
                     <Input id="endDate" name="endDate" type="datetime-local" required />
                   </div>
                 </div>
+                <div className="grid gap-2">
+                  <Label>Localização no Mapa</Label>
+                  <div className="h-[200px] w-full bg-secondary/30 rounded-md border flex items-center justify-center text-muted-foreground text-sm overflow-hidden relative">
+                    <img 
+                      src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80" 
+                      alt="Map Placeholder" 
+                      className="absolute inset-0 w-full h-full object-cover opacity-50"
+                    />
+                    <div className="relative z-10 flex flex-col items-center gap-2 bg-background/80 p-3 rounded-lg backdrop-blur-sm border shadow-sm">
+                      <MapPin className="h-5 w-5 text-primary" />
+                      <span>Mapa Interativo (Simulado)</span>
+                    </div>
+                  </div>
+                </div>
               </div>
               
               <DialogFooter>
