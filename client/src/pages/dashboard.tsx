@@ -33,12 +33,12 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="border-l-4 border-l-primary shadow-sm hover:shadow-md transition-all">
+        <Card className="border border-border shadow-sm hover:shadow-md transition-all">
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Eventos em Andamento</p>
-                <h3 className="text-3xl font-bold mt-2">{activeEvents.length}</h3>
+                <h3 className="text-3xl font-bold mt-2 text-foreground">{activeEvents.length}</h3>
               </div>
               <div className="p-3 bg-primary/10 rounded-xl text-primary">
                 <Activity className="h-5 w-5" />
@@ -47,42 +47,42 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-amber-500 shadow-sm hover:shadow-md transition-all">
+        <Card className="border border-border shadow-sm hover:shadow-md transition-all">
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Eventos Planejados</p>
-                <h3 className="text-3xl font-bold mt-2">{planningEvents.length}</h3>
+                <h3 className="text-3xl font-bold mt-2 text-foreground">{planningEvents.length}</h3>
               </div>
-              <div className="p-3 bg-amber-500/10 rounded-xl text-amber-600">
+              <div className="p-3 bg-primary/10 rounded-xl text-primary">
                 <Calendar className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-blue-500 shadow-sm hover:shadow-md transition-all">
+        <Card className="border border-border shadow-sm hover:shadow-md transition-all">
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Equips. em Uso</p>
-                <h3 className="text-3xl font-bold mt-2">{equipmentInUse.length}</h3>
+                <h3 className="text-3xl font-bold mt-2 text-foreground">{equipmentInUse.length}</h3>
               </div>
-              <div className="p-3 bg-blue-500/10 rounded-xl text-blue-600">
+              <div className="p-3 bg-primary/10 rounded-xl text-primary">
                 <Monitor className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-red-500 shadow-sm hover:shadow-md transition-all">
+        <Card className="border border-border shadow-sm hover:shadow-md transition-all">
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Equips. em Manutenção</p>
-                <h3 className="text-3xl font-bold mt-2">{equipmentMaintenance.length}</h3>
+                <h3 className="text-3xl font-bold mt-2 text-foreground">{equipmentMaintenance.length}</h3>
               </div>
-              <div className="p-3 bg-red-500/10 rounded-xl text-red-600">
+              <div className="p-3 bg-primary/10 rounded-xl text-primary">
                 <Monitor className="h-5 w-5" />
               </div>
             </div>
