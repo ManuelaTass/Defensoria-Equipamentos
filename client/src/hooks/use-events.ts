@@ -201,7 +201,7 @@ export function useUpdateEventTechnician() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ eventId, technicianId, ...updates }: { eventId: number; technicianId: number; ticketCreated?: boolean; daysParticipating?: number }) => {
+    mutationFn: async ({ eventId, technicianId, ...updates }: { eventId: number; technicianId: number; ticketCreated?: boolean; daysParticipating?: number; attended?: boolean }) => {
       const validated = api.events.updateTechnician.input.parse(updates);
       const url = buildUrl(api.events.updateTechnician.path, { eventId, technicianId });
       

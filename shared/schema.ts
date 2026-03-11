@@ -20,6 +20,8 @@ export const events = pgTable("events", {
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
   status: text("status").notNull().default('planning'), // "planning" | "in_progress" | "completed"
+  glpiTicket: text("glpi_ticket"),
+  processNumber: text("process_number"),
 });
 
 export const equipment = pgTable("equipment", {
@@ -44,6 +46,7 @@ export const eventTechnicians = pgTable("event_technicians", {
   technicianId: integer("technician_id").notNull(),
   daysParticipating: integer("days_participating").notNull().default(1),
   ticketCreated: boolean("ticket_created").notNull().default(false),
+  attended: boolean("attended").notNull().default(false),
 });
 
 // Base Schemas

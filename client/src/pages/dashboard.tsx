@@ -2,7 +2,7 @@ import { Layout } from "@/components/layout";
 import { useEvents } from "@/hooks/use-events";
 import { useEquipmentList } from "@/hooks/use-equipment";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Calendar, Monitor, Users, Activity } from "lucide-react";
+import { Loader2, Calendar, Monitor, Activity } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Dashboard() {
@@ -21,9 +21,15 @@ export default function Dashboard() {
 
   const activeEvents = events?.filter(e => e.status === 'in_progress') || [];
   const planningEvents = events?.filter(e => e.status === 'planning') || [];
-  
   const equipmentInUse = equipment?.filter(e => e.status === 'in_use') || [];
   const equipmentMaintenance = equipment?.filter(e => e.status === 'maintenance') || [];
+
+  const statCards = [
+    { label: "Eventos em Andamento", value: activeEvents.length, icon: Activity, href: "/events" },
+    { label: "Eventos Planejados", value: planningEvents.length, icon: Calendar, href: "/events" },
+    { label: "Equips. em Uso", value: equipmentInUse.length, icon: Monitor, href: "/equipment" },
+    { label: "Equips. em Manutenção", value: equipmentMaintenance.length, icon: Monitor, href: "/equipment" },
+  ];
 
   return (
     <Layout>
@@ -33,61 +39,23 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="border border-border shadow-sm hover:shadow-md transition-all">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Eventos em Andamento</p>
-                <h3 className="text-3xl font-bold mt-2 text-foreground">{activeEvents.length}</h3>
-              </div>
-              <div className="p-3 bg-primary/10 rounded-xl text-primary">
-                <Activity className="h-5 w-5" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border shadow-sm hover:shadow-md transition-all">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Eventos Planejados</p>
-                <h3 className="text-3xl font-bold mt-2 text-foreground">{planningEvents.length}</h3>
-              </div>
-              <div className="p-3 bg-primary/10 rounded-xl text-primary">
-                <Calendar className="h-5 w-5" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border shadow-sm hover:shadow-md transition-all">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Equips. em Uso</p>
-                <h3 className="text-3xl font-bold mt-2 text-foreground">{equipmentInUse.length}</h3>
-              </div>
-              <div className="p-3 bg-primary/10 rounded-xl text-primary">
-                <Monitor className="h-5 w-5" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border shadow-sm hover:shadow-md transition-all">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Equips. em Manutenção</p>
-                <h3 className="text-3xl font-bold mt-2 text-foreground">{equipmentMaintenance.length}</h3>
-              </div>
-              <div className="p-3 bg-primary/10 rounded-xl text-primary">
-                <Monitor className="h-5 w-5" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {statCards.map((card) => (
+          <Link key={card.label} href={card.href}>
+            <Card className="border border-border shadow-sm hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all cursor-pointer group">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">{card.label}</p>
+                    <h3 className="text-3xl font-bold mt-2 text-foreground">{card.value}</h3>
+                  </div>
+                  <div className="p-3 bg-primary/10 rounded-xl text-primary group-hover:bg-primary/20 transition-colors">
+                    <card.icon className="h-5 w-5" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

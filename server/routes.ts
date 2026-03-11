@@ -62,6 +62,11 @@ export async function registerRoutes(
     }
   });
 
+  app.delete('/api/events/:eventId/equipment/:equipmentId', async (req, res) => {
+    await storage.deleteEventEquipment(Number(req.params.equipmentId));
+    res.status(204).send();
+  });
+
   app.patch(api.events.updateEquipmentStatus.path, async (req, res) => {
     try {
       const input = api.events.updateEquipmentStatus.input.parse(req.body);
@@ -87,6 +92,11 @@ export async function registerRoutes(
       }
       throw err;
     }
+  });
+
+  app.delete('/api/events/:eventId/technicians/:technicianId', async (req, res) => {
+    await storage.deleteEventTechnician(Number(req.params.technicianId));
+    res.status(204).send();
   });
 
   app.patch(api.events.updateTechnician.path, async (req, res) => {

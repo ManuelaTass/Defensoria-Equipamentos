@@ -30,10 +30,12 @@ export interface IStorage {
   // Event Equipment
   addEventEquipment(data: AddEventEquipmentRequest & { eventId: number }): Promise<EventEquipmentWithDetails>;
   updateEventEquipment(id: number, data: UpdateEventEquipmentRequest): Promise<EventEquipmentWithDetails>;
+  deleteEventEquipment(id: number): Promise<void>;
 
   // Event Technicians
   addEventTechnician(data: AddEventTechnicianRequest & { eventId: number }): Promise<EventTechnicianWithDetails>;
   updateEventTechnician(id: number, data: UpdateEventTechnicianRequest): Promise<EventTechnicianWithDetails>;
+  deleteEventTechnician(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -122,6 +124,10 @@ export class DatabaseStorage implements IStorage {
     return { ...ee, equipment: equip };
   }
 
+  async deleteEventEquipment(id: number): Promise<void> {
+    await db.delete(eventEquipment).where(eq(eventEquipment.id, id));
+  }
+
   // Event Technicians
   async addEventTechnician(data: AddEventTechnicianRequest & { eventId: number }): Promise<EventTechnicianWithDetails> {
     const [et] = await db.insert(eventTechnicians).values(data).returning();
@@ -133,6 +139,10 @@ export class DatabaseStorage implements IStorage {
     const [et] = await db.update(eventTechnicians).set(data).where(eq(eventTechnicians.id, id)).returning();
     const [tech] = await db.select().from(users).where(eq(users.id, et.technicianId));
     return { ...et, technician: tech };
+  }
+
+  async deleteEventTechnician(id: number): Promise<void> {
+    await db.delete(eventTechnicians).where(eq(eventTechnicians.id, id));
   }
 }
 
