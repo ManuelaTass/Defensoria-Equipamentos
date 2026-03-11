@@ -32,21 +32,21 @@ function AppSidebar() {
   const [location] = useLocation();
 
   return (
-    <Sidebar className="border-r border-sidebar-border bg-sidebar-background">
-      <SidebarHeader className="p-6 border-b border-sidebar-border">
+    <Sidebar className="border-r border-sidebar-border" style={{ backgroundColor: "hsl(152, 70%, 16%)" }}>
+      <SidebarHeader className="p-6 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="bg-primary p-2 rounded-xl text-primary-foreground shadow-lg shadow-black/20">
+          <div className="bg-white/15 p-2 rounded-xl text-white shadow-lg shadow-black/20">
             <ShieldAlert size={24} />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-sidebar-foreground leading-tight">DPE-GO</h1>
-            <p className="text-xs text-sidebar-foreground/70">Gestão de Itinerantes</p>
+            <h1 className="text-lg font-bold text-white leading-tight">DPE-GO</h1>
+            <p className="text-xs text-green-300/80">Gestão de Itinerantes</p>
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/50 mt-4 mb-2 text-xs font-semibold tracking-wider uppercase">Menu Principal</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-green-300/60 mt-4 mb-2 text-xs font-semibold tracking-wider uppercase">Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {
@@ -57,15 +57,15 @@ function AppSidebar() {
                       asChild 
                       isActive={isActive}
                       className={`
-                        my-1 px-4 py-3 h-auto transition-all duration-200
+                        my-1 px-4 py-3 h-auto transition-all duration-200 rounded-lg
                         ${isActive 
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold shadow-md" 
-                          : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                          ? "bg-white/15 text-white font-semibold border-l-2 border-green-300" 
+                          : "text-green-100 hover:bg-white/10 hover:text-white"
                         }
                       `}
                     >
                       <Link href={item.url} className="flex items-center gap-3">
-                        <item.icon size={18} />
+                        <item.icon size={18} className={isActive ? "text-green-300" : "text-green-300/70"} />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -88,10 +88,10 @@ export function Layout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider style={style}>
-      <div className="flex min-h-screen w-full bg-secondary/30">
+      <div className="flex min-h-screen w-full" style={{ backgroundColor: "hsl(152, 30%, 97%)" }}>
         <AppSidebar />
         <div className="flex flex-col flex-1 w-full overflow-hidden">
-          <header className="flex items-center h-16 px-6 bg-background/80 backdrop-blur-md border-b sticky top-0 z-50 shadow-sm">
+          <header className="flex items-center h-16 px-6 bg-white border-b border-green-100 sticky top-0 z-50 shadow-sm">
             <SidebarTrigger className="mr-4 text-muted-foreground hover:text-foreground transition-colors" />
             <div className="ml-auto flex items-center gap-4">
               <div className="text-sm font-medium px-4 py-2 bg-primary/10 text-primary rounded-full border border-primary/20">
