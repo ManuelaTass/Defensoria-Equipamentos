@@ -163,6 +163,26 @@ export async function registerRoutes(
     }
   });
 
+  app.put('/api/users/:id', async (req, res) => {
+    try {
+      const user = await storage.updateUser(Number(req.params.id), req.body);
+      res.json(user);
+    } catch (err) {
+      res.status(400).json({ message: "Erro ao atualizar servidor." });
+    }
+  });
+
+  app.delete('/api/users/:id', async (req, res) => {
+    await storage.deleteUser(Number(req.params.id));
+    res.status(204).send();
+  });
+
+  // Equipment Delete
+  app.delete('/api/equipment/:id', async (req, res) => {
+    await storage.deleteEquipment(Number(req.params.id));
+    res.status(204).send();
+  });
+
   // Basic seed function
   await seedDatabase();
 

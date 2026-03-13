@@ -14,6 +14,8 @@ export interface IStorage {
   // Users
   getUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
+  deleteUser(id: number): Promise<void>;
 
   // Events
   getEvents(): Promise<Event[]>;
@@ -26,6 +28,7 @@ export interface IStorage {
   getEquipment(id: number): Promise<Equipment | undefined>;
   createEquipment(equip: InsertEquipment): Promise<Equipment>;
   updateEquipment(id: number, equip: UpdateEquipmentRequest): Promise<Equipment>;
+  deleteEquipment(id: number): Promise<void>;
 
   // Event Equipment
   addEventEquipment(data: AddEventEquipmentRequest & { eventId: number }): Promise<EventEquipmentWithDetails>;
@@ -47,6 +50,15 @@ export class DatabaseStorage implements IStorage {
   async createUser(user: InsertUser): Promise<User> {
     const [newUser] = await db.insert(users).values(user).returning();
     return newUser;
+  }
+
+  async updateUser(id: number, updateData: Partial<InsertUser>): Promise<User> {
+    const [updated] = await db.update(users).set(updateData).where(eq(users.id, id)).returning();
+    return updated;
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
   }
 
   // Events
@@ -109,6 +121,10 @@ export class DatabaseStorage implements IStorage {
   async updateEquipment(id: number, updateData: UpdateEquipmentRequest): Promise<Equipment> {
     const [updatedEquip] = await db.update(equipment).set(updateData).where(eq(equipment.id, id)).returning();
     return updatedEquip;
+  }
+
+  async deleteEquipment(id: number): Promise<void> {
+    await db.delete(equipment).where(eq(equipment.id, id));
   }
 
   // Event Equipment

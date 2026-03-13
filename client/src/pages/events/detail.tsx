@@ -163,7 +163,15 @@ export default function EventDetailPage() {
             <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
               <span className="flex items-center"><MapPin className="w-4 h-4 mr-1"/> {event.location}</span>
               <span className="flex items-center"><Calendar className="w-4 h-4 mr-1"/> {format(new Date(event.startDate), "dd 'de' MMMM", { locale: ptBR })}</span>
-              {event.glpiTicket && <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 text-xs font-medium"><Ticket className="w-3 h-3"/> GLPI: {event.glpiTicket}</span>}
+              {event.glpiTicket && (
+                event.glpiTicket.startsWith("http") ? (
+                  <a href={event.glpiTicket} target="_blank" rel="noreferrer" className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 text-xs font-medium hover:bg-blue-100 transition-colors">
+                    <Ticket className="w-3 h-3"/> Abrir Chamado GLPI
+                  </a>
+                ) : (
+                  <span className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100 text-xs font-medium"><Ticket className="w-3 h-3"/> GLPI: {event.glpiTicket}</span>
+                )
+              )}
               {event.processNumber && <span className="flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded border border-amber-100 text-xs font-medium"><FileText className="w-3 h-3"/> Proc: {event.processNumber}</span>}
             </div>
           </div>
@@ -202,7 +210,7 @@ export default function EventDetailPage() {
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="edit-glpiTicket" className="flex items-center gap-1"><Ticket className="w-4 h-4 text-blue-600"/> Chamado GLPI</Label>
-                      <Input id="edit-glpiTicket" name="glpiTicket" placeholder="Ex: #12345" defaultValue={event.glpiTicket ?? ""} />
+                      <Input id="edit-glpiTicket" name="glpiTicket" placeholder="Nº do chamado ou URL completa (https://...)" defaultValue={event.glpiTicket ?? ""} />
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="edit-processNumber" className="flex items-center gap-1"><FileText className="w-4 h-4 text-amber-600"/> Número de Processo</Label>
@@ -271,7 +279,13 @@ export default function EventDetailPage() {
                     {event.glpiTicket && (
                       <div>
                         <p className="text-sm text-muted-foreground flex items-center gap-1"><Ticket className="w-3 h-3"/> Chamado GLPI</p>
-                        <p className="font-medium text-blue-700">{event.glpiTicket}</p>
+                        {event.glpiTicket.startsWith("http") ? (
+                          <a href={event.glpiTicket} target="_blank" rel="noreferrer" className="font-medium text-blue-700 hover:underline">
+                            Abrir no GLPI ↗
+                          </a>
+                        ) : (
+                          <p className="font-medium text-blue-700">{event.glpiTicket}</p>
+                        )}
                       </div>
                     )}
                     {event.processNumber && (
