@@ -13,14 +13,23 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Plus, Search, Monitor, Package, Pencil, Trash2, Upload, FileSpreadsheet } from "lucide-react";
-import { useRef, useState } from "react";
+import { Loader2, Plus, Search, Monitor, Pencil, Trash2, FileSpreadsheet, Package } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
 import { GlobalEquipmentStatusBadge } from "@/components/status-badges";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { TablePager, usePagination } from "@/components/table-pager";
+import { useLocation } from "wouter";
 import type { Equipment } from "@shared/schema";
+
+const STATUS_CARDS = [
+  { key: "all",         label: "Total",        icon: Package, active: "bg-primary/10 border-primary text-primary", inactive: "bg-card border-border text-muted-foreground" },
+  { key: "available",   label: "Disponíveis",  icon: Monitor, active: "bg-emerald-100 border-emerald-400 text-emerald-700", inactive: "bg-emerald-50/50 border-emerald-100 text-emerald-600" },
+  { key: "in_use",      label: "Em Uso",       icon: Monitor, active: "bg-blue-100 border-blue-400 text-blue-700", inactive: "bg-blue-50/50 border-blue-100 text-blue-600" },
+  { key: "maintenance", label: "Manutenção",   icon: Monitor, active: "bg-amber-100 border-amber-400 text-amber-700", inactive: "bg-amber-50/50 border-amber-100 text-amber-600" },
+  { key: "borrowed",    label: "Emprestado",   icon: Monitor, active: "bg-purple-100 border-purple-400 text-purple-700", inactive: "bg-purple-50/50 border-purple-100 text-purple-600" },
+];
 
 export default function EquipmentPage() {
   const { data: equipment, isLoading } = useEquipmentList();
@@ -29,12 +38,21 @@ export default function EquipmentPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  const [location] = useLocation();
+  const urlParams = new URLSearchParams(location.includes("?") ? location.split("?")[1] : "");
+  const initialStatus = urlParams.get("status") || "all";
+
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editItem, setEditItem] = useState<Equipment | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { page, pageSize, setPage, setPageSize, paginate } = usePagination(10);
+
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, searchTerm]);
 
   const deleteEquipment = useMutation({
     mutationFn: async (id: number) => { await apiRequest("DELETE", `/api/equipment/${id}`); },
@@ -92,10 +110,15 @@ export default function EquipmentPage() {
     toast({ title: "Importação concluída", description: `${success} equipamentos importados.${errors > 0 ? ` ${errors} com erro foram ignorados.` : ""}` });
   };
 
-  const filteredEquipment = (equipment || []).filter(eq => 
-    eq.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    eq.serialNumber.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const countByStatus = (status: string) =>
+    status === "all" ? (equipment?.length || 0) : (equipment?.filter(e => e.status === status).length || 0);
+
+  const filteredEquipment = (equipment || []).filter(eq => {
+    const matchStatus = statusFilter === "all" || eq.status === statusFilter;
+    const matchSearch = eq.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      eq.serialNumber.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchStatus && matchSearch;
+  });
 
   const pagedEquipment = paginate(filteredEquipment);
 
@@ -189,47 +212,51 @@ export default function EquipmentPage() {
         </DialogContent>
       </Dialog>
 
-      {/* CSV hint */}
-      <Card className="mb-5 border-dashed border-blue-200 bg-blue-50/30 shadow-none">
-        <CardContent className="p-3 flex items-center gap-3">
-          <Upload className="h-4 w-4 text-blue-500 flex-shrink-0" />
-          <p className="text-xs text-blue-600/80">
-            Importe sua planilha como <strong>.csv</strong> com colunas: <code className="bg-blue-100 px-1 rounded">Nome, NúmeroDeSérie, Localização</code> (vírgula ou ponto-e-vírgula). A primeira linha pode ser cabeçalho.
-          </p>
-        </CardContent>
-      </Card>
+      {/* Clickable Status Filter Cards */}
+      <div className="grid grid-cols-3 md:grid-cols-5 gap-3 mb-5">
+        {STATUS_CARDS.map(card => {
+          const count = countByStatus(card.key);
+          const isActive = statusFilter === card.key;
+          return (
+            <button
+              key={card.key}
+              onClick={() => setStatusFilter(isActive && card.key !== "all" ? "all" : card.key)}
+              className={`rounded-xl border-2 p-3 flex items-center gap-2.5 transition-all hover:scale-[1.02] hover:shadow-md text-left ${isActive ? card.active : card.inactive}`}
+            >
+              <div className={`p-1.5 rounded-lg ${isActive ? "bg-white/60" : "bg-white/40"}`}>
+                <card.icon className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xl font-bold leading-none">{count}</p>
+                <p className="text-xs font-medium opacity-75 mt-0.5">{card.label}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-        {[
-          { label: "Disponíveis", count: equipment?.filter(e => e.status === 'available').length || 0, cls: "bg-emerald-50/50 border-emerald-100 text-emerald-700 bg-emerald-100" },
-          { label: "Em Uso", count: equipment?.filter(e => e.status === 'in_use').length || 0, cls: "bg-blue-50/50 border-blue-100 text-blue-700 bg-blue-100" },
-          { label: "Manutenção", count: equipment?.filter(e => e.status === 'maintenance').length || 0, cls: "bg-amber-50/50 border-amber-100 text-amber-700 bg-amber-100" },
-          { label: "Total", count: equipment?.length || 0, cls: "bg-secondary/30 border-border text-foreground bg-secondary" },
-        ].map(item => (
-          <div key={item.label} className={`rounded-xl border p-3 flex items-center gap-3 ${item.cls.split(' ').slice(0, 2).join(' ')}`}>
-            <div className={`p-2 rounded-full ${item.cls.split(' ').slice(2, 4).join(' ')}`}>
-              <Monitor className="h-4 w-4" />
-            </div>
-            <div>
-              <p className="text-xl font-bold">{item.count}</p>
-              <p className="text-xs font-medium opacity-75">{item.label}</p>
-            </div>
-          </div>
-        ))}
+      {/* CSV hint */}
+      <div className="mb-4 flex items-center gap-2 text-xs text-muted-foreground">
+        <FileSpreadsheet className="h-3.5 w-3.5 flex-shrink-0" />
+        <span>Importe planilhas <strong>.csv</strong> com colunas: <code className="bg-secondary px-1 rounded">Nome, NúmeroDeSérie, Localização</code></span>
       </div>
 
       <Card className="shadow-lg border-border/50 overflow-hidden bg-card">
-        <div className="p-4 border-b bg-secondary/10 flex items-center gap-2">
+        <div className="p-4 border-b bg-secondary/10 flex items-center justify-between gap-2">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder="Buscar por nome ou serial..." 
               value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 bg-background/50 border-transparent focus-visible:border-primary"
             />
           </div>
+          {statusFilter !== "all" && (
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setStatusFilter("all")}>
+              Limpar filtro ×
+            </Button>
+          )}
         </div>
 
         {isLoading ? (
@@ -239,7 +266,7 @@ export default function EquipmentPage() {
         ) : filteredEquipment.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
             <Monitor className="h-12 w-12 mb-4 opacity-20" />
-            <p>Nenhum equipamento encontrado.</p>
+            <p>Nenhum equipamento encontrado{statusFilter !== "all" ? " com este status" : ""}.</p>
           </div>
         ) : (
           <>
@@ -279,7 +306,7 @@ export default function EquipmentPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Excluir equipamento?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Este equipamento será removido permanentemente do inventário. Esta ação não pode ser desfeita.
+                                Este equipamento será removido permanentemente do inventário.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
