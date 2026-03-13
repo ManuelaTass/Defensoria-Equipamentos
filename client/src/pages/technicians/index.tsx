@@ -19,6 +19,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { TablePager, usePagination } from "@/components/table-pager";
 import type { User } from "@shared/schema";
 
 function RoleBadge({ role }: { role: string }) {
@@ -37,7 +38,7 @@ function UserRow({ user, onEdit, onDelete }: { user: User; onEdit: (u: User) => 
     <TableRow className="hover:bg-secondary/10 transition-colors">
       <TableCell className="font-medium">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+          <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs flex-shrink-0">
             {user.name.charAt(0)}
           </div>
           {user.name}
@@ -80,12 +81,144 @@ function UserRow({ user, onEdit, onDelete }: { user: User; onEdit: (u: User) => 
   );
 }
 
+function TeamTable({ 
+  users, title, description, icon: Icon, headerClass, emptyMsg,
+  page, pageSize, setPage, setPageSize
+}: {
+  users: User[];
+  title: string;
+  description: string;
+  icon: any;
+  headerClass: string;
+  emptyMsg: string;
+  page: number;
+  pageSize: number;
+  setPage: (p: number) => void;
+  setPageSize: (s: number) => void;
+}) {
+  const [editUser, setEditUser] = useState<User | null>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const updateUser = useMutation({
+    mutationFn: async ({ id, ...data }: any) => {
+      const res = await apiRequest("PUT", `/api/users/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setEditUser(null);
+      toast({ title: "Atualizado", description: "Servidor atualizado." });
+    }
+  });
+
+  const deleteUser = useMutation({
+    mutationFn: async (id: number) => { await apiRequest("DELETE", `/api/users/${id}`); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({ title: "Removido", description: "Servidor removido." });
+    }
+  });
+
+  const handleEdit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    updateUser.mutate({ id: editUser!.id, name: fd.get("name") as string, username: fd.get("username") as string, role: fd.get("role") as string });
+  };
+
+  const start = (page - 1) * pageSize;
+  const pagedUsers = users.slice(start, start + pageSize);
+
+  return (
+    <Card className="shadow-lg border-border/50 overflow-hidden">
+      <CardHeader className={`${headerClass} border-b pb-4`}>
+        <div className="flex items-center gap-2">
+          <Icon className="h-5 w-5" />
+          <div>
+            <CardTitle className="text-base">{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        {users.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-28 text-muted-foreground">
+            <Users className="h-7 w-7 mb-2 opacity-20" />
+            <p className="text-sm italic">{emptyMsg}</p>
+          </div>
+        ) : (
+          <>
+            <Table>
+              <TableHeader className="bg-secondary/20">
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Usuário de Rede</TableHead>
+                  <TableHead>Cargo</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pagedUsers.map(u => (
+                  <UserRow key={u.id} user={u} onEdit={setEditUser} onDelete={(id) => deleteUser.mutate(id)} />
+                ))}
+              </TableBody>
+            </Table>
+            <TablePager total={users.length} page={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />
+          </>
+        )}
+      </CardContent>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editUser} onOpenChange={(o) => !o && setEditUser(null)}>
+        <DialogContent>
+          <form onSubmit={handleEdit} key={editUser?.id}>
+            <DialogHeader>
+              <DialogTitle>Editar Servidor</DialogTitle>
+              <DialogDescription>Atualize as informações do servidor.</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Nome</Label>
+                <Input id="name" name="name" defaultValue={editUser?.name} required />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="username">Usuário de Rede</Label>
+                <Input id="username" name="username" defaultValue={editUser?.username} required />
+              </div>
+              <div className="grid gap-2">
+                <Label>Cargo</Label>
+                <Select name="role" defaultValue={editUser?.role}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="technician">Técnico de TI</SelectItem>
+                    <SelectItem value="defender">Defensor(a)</SelectItem>
+                    <SelectItem value="advisor">Assessor(a)</SelectItem>
+                    <SelectItem value="almoxarifado">Almoxarifado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditUser(null)}>Cancelar</Button>
+              <Button type="submit" disabled={updateUser.isPending}>
+                {updateUser.isPending ? "Salvando..." : "Salvar"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
+
 export default function TechniciansPage() {
   const { data: users, isLoading } = useUsers();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editUser, setEditUser] = useState<User | null>(null);
+
+  const legalPager = usePagination(10);
+  const techPager = usePagination(10);
 
   const createUser = useMutation({
     mutationFn: async (data: any) => {
@@ -100,29 +233,6 @@ export default function TechniciansPage() {
     onError: () => toast({ title: "Erro", description: "Não foi possível cadastrar.", variant: "destructive" })
   });
 
-  const updateUser = useMutation({
-    mutationFn: async ({ id, ...data }: any) => {
-      const res = await apiRequest("PUT", `/api/users/${id}`, data);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      setEditUser(null);
-      toast({ title: "Atualizado", description: "Servidor atualizado com sucesso." });
-    },
-    onError: () => toast({ title: "Erro", description: "Não foi possível atualizar.", variant: "destructive" })
-  });
-
-  const deleteUser = useMutation({
-    mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/users/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      toast({ title: "Removido", description: "Servidor removido." });
-    }
-  });
-
   const handleCreate = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -134,46 +244,8 @@ export default function TechniciansPage() {
     });
   };
 
-  const handleEdit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    updateUser.mutate({
-      id: editUser!.id,
-      name: fd.get("name") as string,
-      username: fd.get("username") as string,
-      role: fd.get("role") as string,
-    });
-  };
-
   const legalTeam = users?.filter(u => ['defender', 'advisor'].includes(u.role)) || [];
   const techTeam = users?.filter(u => ['technician', 'almoxarifado'].includes(u.role)) || [];
-
-  const userFormFields = (defaults?: User) => (
-    <div className="grid gap-5 py-6">
-      <div className="grid gap-2">
-        <Label htmlFor="name">Nome Completo</Label>
-        <Input id="name" name="name" placeholder="Ex: Carlos Silva" defaultValue={defaults?.name} required />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="username">Usuário de Rede</Label>
-        <Input id="username" name="username" placeholder="Ex: carlos.silva" defaultValue={defaults?.username} required />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="role">Lotação / Cargo</Label>
-        <Select name="role" defaultValue={defaults?.role ?? "technician"}>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecione o cargo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="technician">Técnico de TI</SelectItem>
-            <SelectItem value="defender">Defensor(a)</SelectItem>
-            <SelectItem value="advisor">Assessor(a)</SelectItem>
-            <SelectItem value="almoxarifado">Almoxarifado</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
-  );
 
   return (
     <Layout>
@@ -195,7 +267,28 @@ export default function TechniciansPage() {
                 <DialogTitle>Novo Servidor</DialogTitle>
                 <DialogDescription>Adicione um defensor, assessor ou técnico à equipe.</DialogDescription>
               </DialogHeader>
-              {userFormFields()}
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label>Nome Completo</Label>
+                  <Input name="name" placeholder="Ex: Carlos Silva" required />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Usuário de Rede</Label>
+                  <Input name="username" placeholder="Ex: carlos.silva" required />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Cargo</Label>
+                  <Select name="role" defaultValue="technician">
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="technician">Técnico de TI</SelectItem>
+                      <SelectItem value="defender">Defensor(a)</SelectItem>
+                      <SelectItem value="advisor">Assessor(a)</SelectItem>
+                      <SelectItem value="almoxarifado">Almoxarifado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
                 <Button type="submit" disabled={createUser.isPending}>
@@ -207,104 +300,32 @@ export default function TechniciansPage() {
         </Dialog>
       </div>
 
-      {/* Edit Dialog */}
-      <Dialog open={!!editUser} onOpenChange={(o) => !o && setEditUser(null)}>
-        <DialogContent>
-          <form onSubmit={handleEdit} key={editUser?.id}>
-            <DialogHeader>
-              <DialogTitle>Editar Servidor</DialogTitle>
-              <DialogDescription>Atualize as informações de {editUser?.name}.</DialogDescription>
-            </DialogHeader>
-            {userFormFields(editUser ?? undefined)}
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setEditUser(null)}>Cancelar</Button>
-              <Button type="submit" disabled={updateUser.isPending}>
-                {updateUser.isPending ? "Salvando..." : "Salvar"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
       {isLoading ? (
         <div className="flex h-48 items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
         <div className="space-y-8">
-          {/* Defensores e Assessores */}
-          <Card className="shadow-lg border-border/50 overflow-hidden">
-            <CardHeader className="bg-emerald-50/30 border-b pb-4">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                <div>
-                  <CardTitle className="text-emerald-800 text-base">Defensores e Assessores</CardTitle>
-                  <CardDescription>Membros jurídicos da Defensoria Pública.</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {legalTeam.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                  <Users className="h-8 w-8 mb-2 opacity-20" />
-                  <p className="text-sm italic">Nenhum defensor ou assessor cadastrado.</p>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader className="bg-secondary/20">
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Usuário de Rede</TableHead>
-                      <TableHead>Cargo</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {legalTeam.map(u => (
-                      <UserRow key={u.id} user={u} onEdit={setEditUser} onDelete={(id) => deleteUser.mutate(id)} />
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* TI e Almoxarifado */}
-          <Card className="shadow-lg border-border/50 overflow-hidden">
-            <CardHeader className="bg-blue-50/20 border-b pb-4">
-              <div className="flex items-center gap-2">
-                <Cpu className="h-5 w-5 text-blue-600" />
-                <div>
-                  <CardTitle className="text-blue-800 text-base">Equipe de TI e Apoio</CardTitle>
-                  <CardDescription>Técnicos e responsáveis pelo Almoxarifado.</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {techTeam.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                  <Users className="h-8 w-8 mb-2 opacity-20" />
-                  <p className="text-sm italic">Nenhum técnico cadastrado.</p>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader className="bg-secondary/20">
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Usuário de Rede</TableHead>
-                      <TableHead>Cargo</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {techTeam.map(u => (
-                      <UserRow key={u.id} user={u} onEdit={setEditUser} onDelete={(id) => deleteUser.mutate(id)} />
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+          <TeamTable
+            users={legalTeam}
+            title="Defensores e Assessores"
+            description="Membros jurídicos da Defensoria Pública."
+            icon={({ className }: any) => <ShieldCheck className={`${className} text-emerald-600`} />}
+            headerClass="bg-emerald-50/30"
+            emptyMsg="Nenhum defensor ou assessor cadastrado."
+            page={legalPager.page} pageSize={legalPager.pageSize}
+            setPage={legalPager.setPage} setPageSize={legalPager.setPageSize}
+          />
+          <TeamTable
+            users={techTeam}
+            title="Equipe de TI e Apoio"
+            description="Técnicos e responsáveis pelo Almoxarifado."
+            icon={({ className }: any) => <Cpu className={`${className} text-blue-600`} />}
+            headerClass="bg-blue-50/20"
+            emptyMsg="Nenhum técnico cadastrado."
+            page={techPager.page} pageSize={techPager.pageSize}
+            setPage={techPager.setPage} setPageSize={techPager.setPageSize}
+          />
         </div>
       )}
     </Layout>

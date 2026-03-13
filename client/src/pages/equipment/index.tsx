@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout";
 import { useEquipmentList, useCreateEquipment, useUpdateEquipment } from "@/hooks/use-equipment";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,7 @@ import { GlobalEquipmentStatusBadge } from "@/components/status-badges";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { TablePager, usePagination } from "@/components/table-pager";
 import type { Equipment } from "@shared/schema";
 
 export default function EquipmentPage() {
@@ -33,11 +34,10 @@ export default function EquipmentPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { page, pageSize, setPage, setPageSize, paginate } = usePagination(10);
 
   const deleteEquipment = useMutation({
-    mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/equipment/${id}`);
-    },
+    mutationFn: async (id: number) => { await apiRequest("DELETE", `/api/equipment/${id}`); },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
       toast({ title: "Removido", description: "Equipamento excluído do inventário." });
@@ -72,70 +72,52 @@ export default function EquipmentPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setIsImporting(true);
-
     const text = await file.text();
     const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
-    
-    // Skip header line if it contains text like "nome" or "name"
     const dataLines = lines[0]?.toLowerCase().includes("nome") || lines[0]?.toLowerCase().includes("name")
       ? lines.slice(1) : lines;
-
     let success = 0, errors = 0;
-
     for (const line of dataLines) {
-      // Support comma or semicolon separators
       const cols = line.split(/[,;]/).map(c => c.trim().replace(/^"|"$/g, ""));
       const [name, serialNumber, currentLocation] = cols;
       if (!name || !serialNumber) { errors++; continue; }
       try {
-        await apiRequest("POST", "/api/equipment", {
-          name,
-          serialNumber,
-          status: "available",
-          isBorrowed: false,
-          currentLocation: currentLocation || "Almoxarifado TI"
-        });
+        await apiRequest("POST", "/api/equipment", { name, serialNumber, status: "available", isBorrowed: false, currentLocation: currentLocation || "Almoxarifado TI" });
         success++;
-      } catch {
-        errors++;
-      }
+      } catch { errors++; }
     }
-
     queryClient.invalidateQueries({ queryKey: ["/api/equipment"] });
     setIsImporting(false);
     e.target.value = "";
-    toast({
-      title: "Importação concluída",
-      description: `${success} equipamentos importados.${errors > 0 ? ` ${errors} linha(s) com erro foram ignoradas.` : ""}`,
-    });
+    toast({ title: "Importação concluída", description: `${success} equipamentos importados.${errors > 0 ? ` ${errors} com erro foram ignorados.` : ""}` });
   };
 
-  const filteredEquipment = equipment?.filter(eq => 
+  const filteredEquipment = (equipment || []).filter(eq => 
     eq.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     eq.serialNumber.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  );
 
-  const equipForm = (defaults?: Equipment) => (
+  const pagedEquipment = paginate(filteredEquipment);
+
+  const equipFields = (defaults?: Equipment) => (
     <div className="grid gap-4 py-4">
       <div className="grid gap-2">
-        <Label htmlFor="eq-name">Descrição / Nome</Label>
-        <Input id="eq-name" name="name" placeholder="Ex: Notebook Dell Latitude 3420" defaultValue={defaults?.name} required />
+        <Label>Descrição / Nome</Label>
+        <Input name="name" placeholder="Ex: Notebook Dell Latitude 3420" defaultValue={defaults?.name} required />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="eq-serial">Número de Série / Patrimônio</Label>
-        <Input id="eq-serial" name="serialNumber" placeholder="Ex: DELL-X8C9D" defaultValue={defaults?.serialNumber} required />
+        <Label>Número de Série / Patrimônio</Label>
+        <Input name="serialNumber" placeholder="Ex: DELL-X8C9D" defaultValue={defaults?.serialNumber} required />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="eq-location">Localização Atual</Label>
-        <Input id="eq-location" name="currentLocation" placeholder="Ex: Almoxarifado TI" defaultValue={defaults?.currentLocation ?? ""} />
+        <Label>Localização Atual</Label>
+        <Input name="currentLocation" placeholder="Ex: Almoxarifado TI" defaultValue={defaults?.currentLocation ?? ""} />
       </div>
       {defaults && (
         <div className="grid gap-2">
-          <Label htmlFor="eq-status">Status</Label>
+          <Label>Status</Label>
           <Select name="status" defaultValue={defaults.status}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="available">Disponível</SelectItem>
               <SelectItem value="in_use">Em Uso</SelectItem>
@@ -157,14 +139,8 @@ export default function EquipmentPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* CSV Import */}
           <input ref={fileInputRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleCSVImport} />
-          <Button
-            variant="outline"
-            className="gap-2"
-            disabled={isImporting}
-            onClick={() => fileInputRef.current?.click()}
-          >
+          <Button variant="outline" className="gap-2" disabled={isImporting} onClick={() => fileInputRef.current?.click()}>
             {isImporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
             {isImporting ? "Importando..." : "Importar CSV"}
           </Button>
@@ -172,7 +148,7 @@ export default function EquipmentPage() {
           <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
             <DialogTrigger asChild>
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20">
-                <Plus className="mr-2 h-4 w-4" /> Cadastrar Equipamento
+                <Plus className="mr-2 h-4 w-4" /> Cadastrar
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -181,7 +157,7 @@ export default function EquipmentPage() {
                   <DialogTitle>Novo Equipamento</DialogTitle>
                   <DialogDescription>Insira os dados do equipamento no inventário global.</DialogDescription>
                 </DialogHeader>
-                {equipForm()}
+                {equipFields()}
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
                   <Button type="submit" disabled={createEquipment.isPending}>
@@ -200,9 +176,9 @@ export default function EquipmentPage() {
           <form onSubmit={handleEdit} key={editItem?.id}>
             <DialogHeader>
               <DialogTitle>Editar Equipamento</DialogTitle>
-              <DialogDescription>Atualize os dados de "{editItem?.name}".</DialogDescription>
+              <DialogDescription>Atualize os dados do equipamento selecionado.</DialogDescription>
             </DialogHeader>
-            {equipForm(editItem ?? undefined)}
+            {equipFields(editItem ?? undefined)}
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setEditItem(null)}>Cancelar</Button>
               <Button type="submit" disabled={updateEquipment.isPending}>
@@ -213,48 +189,34 @@ export default function EquipmentPage() {
         </DialogContent>
       </Dialog>
 
-      {/* CSV Format hint card */}
-      <Card className="mb-6 border-dashed border-blue-200 bg-blue-50/30 shadow-none">
-        <CardContent className="p-4 flex items-start gap-3">
-          <Upload className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-sm font-semibold text-blue-700">Importação via planilha CSV</p>
-            <p className="text-xs text-blue-600/80 mt-0.5">
-              Exporte sua planilha como <strong>.csv</strong> com colunas: <code className="bg-blue-100 px-1 rounded">Nome, NúmeroDeSérie, Localização</code> (separadas por vírgula ou ponto-e-vírgula). A primeira linha pode ser o cabeçalho.
-            </p>
-          </div>
+      {/* CSV hint */}
+      <Card className="mb-5 border-dashed border-blue-200 bg-blue-50/30 shadow-none">
+        <CardContent className="p-3 flex items-center gap-3">
+          <Upload className="h-4 w-4 text-blue-500 flex-shrink-0" />
+          <p className="text-xs text-blue-600/80">
+            Importe sua planilha como <strong>.csv</strong> com colunas: <code className="bg-blue-100 px-1 rounded">Nome, NúmeroDeSérie, Localização</code> (vírgula ou ponto-e-vírgula). A primeira linha pode ser cabeçalho.
+          </p>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Card className="p-4 flex items-center gap-4 bg-emerald-50/50 border-emerald-100 shadow-sm">
-          <div className="bg-emerald-100 p-3 rounded-full text-emerald-600"><Monitor className="h-5 w-5"/></div>
-          <div>
-            <p className="text-2xl font-bold text-emerald-700">{equipment?.filter(e => e.status === 'available').length || 0}</p>
-            <p className="text-sm font-medium text-emerald-600/80">Disponíveis</p>
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+        {[
+          { label: "Disponíveis", count: equipment?.filter(e => e.status === 'available').length || 0, cls: "bg-emerald-50/50 border-emerald-100 text-emerald-700 bg-emerald-100" },
+          { label: "Em Uso", count: equipment?.filter(e => e.status === 'in_use').length || 0, cls: "bg-blue-50/50 border-blue-100 text-blue-700 bg-blue-100" },
+          { label: "Manutenção", count: equipment?.filter(e => e.status === 'maintenance').length || 0, cls: "bg-amber-50/50 border-amber-100 text-amber-700 bg-amber-100" },
+          { label: "Total", count: equipment?.length || 0, cls: "bg-secondary/30 border-border text-foreground bg-secondary" },
+        ].map(item => (
+          <div key={item.label} className={`rounded-xl border p-3 flex items-center gap-3 ${item.cls.split(' ').slice(0, 2).join(' ')}`}>
+            <div className={`p-2 rounded-full ${item.cls.split(' ').slice(2, 4).join(' ')}`}>
+              <Monitor className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xl font-bold">{item.count}</p>
+              <p className="text-xs font-medium opacity-75">{item.label}</p>
+            </div>
           </div>
-        </Card>
-        <Card className="p-4 flex items-center gap-4 bg-blue-50/50 border-blue-100 shadow-sm">
-          <div className="bg-blue-100 p-3 rounded-full text-blue-600"><Package className="h-5 w-5"/></div>
-          <div>
-            <p className="text-2xl font-bold text-blue-700">{equipment?.filter(e => e.status === 'in_use').length || 0}</p>
-            <p className="text-sm font-medium text-blue-600/80">Em Uso</p>
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center gap-4 bg-amber-50/50 border-amber-100 shadow-sm">
-          <div className="bg-amber-100 p-3 rounded-full text-amber-600"><Monitor className="h-5 w-5"/></div>
-          <div>
-            <p className="text-2xl font-bold text-amber-700">{equipment?.filter(e => e.status === 'maintenance').length || 0}</p>
-            <p className="text-sm font-medium text-amber-600/80">Manutenção</p>
-          </div>
-        </Card>
-        <Card className="p-4 flex items-center gap-4 bg-secondary/30 border-border shadow-sm">
-          <div className="bg-secondary p-3 rounded-full text-muted-foreground"><Package className="h-5 w-5"/></div>
-          <div>
-            <p className="text-2xl font-bold text-foreground">{equipment?.length || 0}</p>
-            <p className="text-sm font-medium text-muted-foreground">Total</p>
-          </div>
-        </Card>
+        ))}
       </div>
 
       <Card className="shadow-lg border-border/50 overflow-hidden bg-card">
@@ -264,7 +226,7 @@ export default function EquipmentPage() {
             <Input 
               placeholder="Buscar por nome ou serial..." 
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
               className="pl-9 bg-background/50 border-transparent focus-visible:border-primary"
             />
           </div>
@@ -280,77 +242,71 @@ export default function EquipmentPage() {
             <p>Nenhum equipamento encontrado.</p>
           </div>
         ) : (
-          <Table>
-            <TableHeader className="bg-secondary/30">
-              <TableRow>
-                <TableHead className="font-semibold text-foreground">Equipamento</TableHead>
-                <TableHead className="font-semibold text-foreground">Serial / Patrimônio</TableHead>
-                <TableHead className="font-semibold text-foreground">Localização</TableHead>
-                <TableHead className="font-semibold text-foreground">Status</TableHead>
-                <TableHead className="text-right font-semibold text-foreground">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEquipment.map((eq) => (
-                <TableRow key={eq.id} className="hover:bg-secondary/10 transition-colors">
-                  <TableCell className="font-medium">{eq.name}</TableCell>
-                  <TableCell>
-                    <span className="bg-secondary px-2 py-1 rounded text-xs font-mono border">{eq.serialNumber}</span>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{eq.currentLocation || "—"}</TableCell>
-                  <TableCell>
-                    <GlobalEquipmentStatusBadge status={eq.status} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Select 
-                        value={eq.status} 
-                        onValueChange={(val) => updateEquipment.mutate({ id: eq.id, status: val as any })}
-                        disabled={updateEquipment.isPending}
-                      >
-                        <SelectTrigger className="w-[140px] h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="available">Disponível</SelectItem>
-                          <SelectItem value="in_use">Em Uso</SelectItem>
-                          <SelectItem value="maintenance">Manutenção</SelectItem>
-                          <SelectItem value="borrowed">Emprestado</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditItem(eq)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Excluir equipamento?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              "{eq.name}" (SN: {eq.serialNumber}) será removido permanentemente do inventário.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              onClick={() => deleteEquipment.mutate(eq.id)}
-                            >
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
+          <>
+            <Table>
+              <TableHeader className="bg-secondary/30">
+                <TableRow>
+                  <TableHead className="font-semibold text-foreground">Equipamento</TableHead>
+                  <TableHead className="font-semibold text-foreground">Serial / Patrimônio</TableHead>
+                  <TableHead className="font-semibold text-foreground">Localização</TableHead>
+                  <TableHead className="font-semibold text-foreground">Status</TableHead>
+                  <TableHead className="text-right font-semibold text-foreground">Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {pagedEquipment.map((eq) => (
+                  <TableRow key={eq.id} className="hover:bg-secondary/10 transition-colors">
+                    <TableCell className="font-medium">{eq.name}</TableCell>
+                    <TableCell>
+                      <span className="bg-secondary px-2 py-1 rounded text-xs font-mono border">{eq.serialNumber}</span>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{eq.currentLocation || "—"}</TableCell>
+                    <TableCell>
+                      <GlobalEquipmentStatusBadge status={eq.status} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditItem(eq)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Excluir equipamento?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Este equipamento será removido permanentemente do inventário. Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                onClick={() => deleteEquipment.mutate(eq.id)}
+                              >
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <TablePager
+              total={filteredEquipment.length}
+              page={page}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
+          </>
         )}
       </Card>
     </Layout>

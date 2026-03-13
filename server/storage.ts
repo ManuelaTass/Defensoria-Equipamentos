@@ -18,7 +18,7 @@ export interface IStorage {
   deleteUser(id: number): Promise<void>;
 
   // Events
-  getEvents(): Promise<Event[]>;
+  getEvents(): Promise<(Event & { technicianCount: number; equipmentCount: number })[]>;
   getEvent(id: number): Promise<EventDetailsResponse | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: number, event: UpdateEventRequest): Promise<Event>;
@@ -62,8 +62,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Events
-  async getEvents(): Promise<Event[]> {
-    return await db.select().from(events);
+  async getEvents(): Promise<(Event & { technicianCount: number; equipmentCount: number })[]> {
+    const allEvents = await db.select().from(events);
+    const allTechs = await db.select().from(eventTechnicians);
+    const allEqs = await db.select().from(eventEquipment);
+    return allEvents.map(ev => ({
+      ...ev,
+      technicianCount: allTechs.filter(t => t.eventId === ev.id).length,
+      equipmentCount: allEqs.filter(e => e.eventId === ev.id).length,
+    }));
   }
 
   async getEvent(id: number): Promise<EventDetailsResponse | undefined> {
