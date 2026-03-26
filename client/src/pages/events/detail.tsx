@@ -34,12 +34,15 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth, isSuporte } from "@/hooks/use-auth";
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
   const eventId = parseInt(id, 10);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const podeEditar = isSuporte(user?.role ?? "");
   
   const { data: event, isLoading } = useEvent(eventId);
   const { data: allEquipment } = useEquipmentList();
@@ -177,7 +180,7 @@ export default function EventDetailPage() {
           </div>
           
           <div className="flex items-center gap-2">
-            <Dialog open={isEditEventOpen} onOpenChange={setIsEditEventOpen}>
+            {podeEditar && <Dialog open={isEditEventOpen} onOpenChange={setIsEditEventOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2">
                   <Pencil className="w-4 h-4" /> Editar Evento
@@ -225,12 +228,12 @@ export default function EventDetailPage() {
                   </DialogFooter>
                 </form>
               </DialogContent>
-            </Dialog>
+            </Dialog>}
 
             <Select 
               value={event.status} 
-              onValueChange={(val) => updateEvent.mutate({ id: event.id, status: val })}
-              disabled={updateEvent.isPending}
+              onValueChange={(val) => podeEditar && updateEvent.mutate({ id: event.id, status: val })}
+              disabled={!podeEditar || updateEvent.isPending}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Status" />
@@ -376,7 +379,7 @@ export default function EventDetailPage() {
                 <CardTitle>Fluxo de Equipamentos</CardTitle>
                 <CardDescription>Acompanhe o teste e envio dos itens.</CardDescription>
               </div>
-              <Dialog open={isEqDialogOpen} onOpenChange={setIsEqDialogOpen}>
+              {podeEditar && <Dialog open={isEqDialogOpen} onOpenChange={setIsEqDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="bg-primary hover:bg-primary/90"><Plus className="w-4 h-4 mr-2"/> Adicionar</Button>
                 </DialogTrigger>
@@ -410,7 +413,7 @@ export default function EventDetailPage() {
                     </DialogFooter>
                   </form>
                 </DialogContent>
-              </Dialog>
+              </Dialog>}
             </CardHeader>
             <CardContent className="p-0">
               {event.equipment.length === 0 ? (
@@ -457,7 +460,7 @@ export default function EventDetailPage() {
                           </Select>
                         </TableCell>
                         <TableCell className="text-right">
-                          <AlertDialog>
+                          {podeEditar && <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive">
                                 <Trash2 className="h-4 w-4" />
@@ -480,7 +483,7 @@ export default function EventDetailPage() {
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
-                          </AlertDialog>
+                          </AlertDialog>}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -495,7 +498,7 @@ export default function EventDetailPage() {
         <TabsContent value="technicians" className="animate-in fade-in-50 duration-300">
           <div className="space-y-6">
             <div className="flex justify-end">
-              <Dialog open={isTechDialogOpen} onOpenChange={setIsTechDialogOpen}>
+              {podeEditar && <Dialog open={isTechDialogOpen} onOpenChange={setIsTechDialogOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" className="bg-primary hover:bg-primary/90"><UserPlus className="w-4 h-4 mr-2"/> Adicionar Membro</Button>
                 </DialogTrigger>
@@ -535,7 +538,7 @@ export default function EventDetailPage() {
                     </DialogFooter>
                   </form>
                 </DialogContent>
-              </Dialog>
+              </Dialog>}
             </div>
 
             {/* Defensores e Assessores */}
@@ -591,7 +594,7 @@ export default function EventDetailPage() {
                             />
                           </TableCell>
                           <TableCell>
-                            <AlertDialog>
+                            {podeEditar && <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive">
                                   <Trash2 className="h-4 w-4" />
@@ -614,7 +617,7 @@ export default function EventDetailPage() {
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
-                            </AlertDialog>
+                            </AlertDialog>}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -666,7 +669,7 @@ export default function EventDetailPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <AlertDialog>
+                            {podeEditar && <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-destructive">
                                   <Trash2 className="h-4 w-4" />
@@ -689,7 +692,7 @@ export default function EventDetailPage() {
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
-                            </AlertDialog>
+                            </AlertDialog>}
                           </TableCell>
                         </TableRow>
                       ))}

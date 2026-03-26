@@ -15,10 +15,13 @@ import { useState } from "react";
 import { EventStatusBadge } from "@/components/status-badges";
 import { Link } from "wouter";
 import { TablePager, usePagination } from "@/components/table-pager";
+import { useAuth, isSuporte } from "@/hooks/use-auth";
 
 export default function EventsPage() {
   const { data: events, isLoading } = useEvents();
   const createEvent = useCreateEvent();
+  const { user } = useAuth();
+  const podeEditar = isSuporte(user?.role ?? "");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const { page, pageSize, setPage, setPageSize, paginate } = usePagination(10);
@@ -50,47 +53,49 @@ export default function EventsPage() {
           <p className="text-muted-foreground mt-1">Gerencie os eventos e expedições da Defensoria.</p>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20">
-              <Plus className="mr-2 h-4 w-4" /> Novo Evento
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[480px]">
-            <form onSubmit={handleSubmit}>
-              <DialogHeader>
-                <DialogTitle>Criar Novo Itinerante</DialogTitle>
-                <DialogDescription>Preencha os dados básicos do evento para iniciar o planejamento.</DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-5 py-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Nome do Evento</Label>
-                  <Input id="name" name="name" placeholder="Ex: Itinerante - Aparecida de Goiânia" required />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="location">Local</Label>
-                  <Input id="location" name="location" placeholder="Ex: Praça da Matriz" required />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+        {podeEditar && (
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20">
+                <Plus className="mr-2 h-4 w-4" /> Novo Evento
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[480px]">
+              <form onSubmit={handleSubmit}>
+                <DialogHeader>
+                  <DialogTitle>Criar Novo Itinerante</DialogTitle>
+                  <DialogDescription>Preencha os dados básicos do evento para iniciar o planejamento.</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-5 py-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="startDate">Início</Label>
-                    <Input id="startDate" name="startDate" type="datetime-local" required />
+                    <Label htmlFor="name">Nome do Evento</Label>
+                    <Input id="name" name="name" placeholder="Ex: Itinerante - Aparecida de Goiânia" required />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="endDate">Término</Label>
-                    <Input id="endDate" name="endDate" type="datetime-local" required />
+                    <Label htmlFor="location">Local</Label>
+                    <Input id="location" name="location" placeholder="Ex: Praça da Matriz" required />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="startDate">Início</Label>
+                      <Input id="startDate" name="startDate" type="datetime-local" required />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="endDate">Término</Label>
+                      <Input id="endDate" name="endDate" type="datetime-local" required />
+                    </div>
                   </div>
                 </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-                <Button type="submit" disabled={createEvent.isPending}>
-                  {createEvent.isPending ? "Criando..." : "Salvar Evento"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                  <Button type="submit" disabled={createEvent.isPending}>
+                    {createEvent.isPending ? "Criando..." : "Salvar Evento"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <Card className="shadow-lg border-border/50 overflow-hidden">

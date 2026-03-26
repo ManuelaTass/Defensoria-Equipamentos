@@ -13,6 +13,8 @@ import { eq } from "drizzle-orm";
 export interface IStorage {
   // Usuários
   getUsers(): Promise<User[]>;
+  getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
   deleteUser(id: number): Promise<void>;
@@ -46,7 +48,17 @@ export class DatabaseStorage implements IStorage {
   async getUsers(): Promise<User[]> {
     return await db.select().from(users);
   }
-  
+
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
   async createUser(user: InsertUser): Promise<User> {
     const [newUser] = await db.insert(users).values(user).returning();
     return newUser;
@@ -79,7 +91,7 @@ export class DatabaseStorage implements IStorage {
 
     const eventEqs = await db.select().from(eventEquipment).where(eq(eventEquipment.eventId, id));
     const allEqs = await db.select().from(equipment);
-    
+
     const equipmentDetails: EventEquipmentWithDetails[] = eventEqs.map(ee => ({
       ...ee,
       equipment: allEqs.find(e => e.id === ee.equipmentId)!

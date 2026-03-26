@@ -1,20 +1,72 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
+import { passport } from "./auth";
+
+// Middlewares de controle de acesso
+function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Não autenticado" });
+  }
+  next();
+}
+
+function requireRole(...roles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Não autenticado" });
+    }
+    const user = req.user as any;
+    if (!roles.includes(user.role)) {
+      return res.status(403).json({ message: "Acesso não permitido para este perfil" });
+    }
+    next();
+  };
+}
+
+const suporte = ["admin", "technician", "almoxarifado"];
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  // Autenticação
+  app.post("/api/auth/login", (req, res, next) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) return next(err);
+      if (!user) return res.status(401).json({ message: info?.message || "Credenciais inválidas" });
+      req.logIn(user, (err) => {
+        if (err) return next(err);
+        const { password: _, ...userSafe } = user;
+        return res.json(userSafe);
+      });
+    })(req, res, next);
+  });
+
+  app.post("/api/auth/logout", (req, res, next) => {
+    req.logout((err) => {
+      if (err) return next(err);
+      res.json({ message: "Sessão encerrada" });
+    });
+  });
+
+  app.get("/api/auth/me", (req, res) => {
+    if (!req.isAuthenticated() || !req.user) {
+      return res.status(401).json({ message: "Não autenticado" });
+    }
+    const { password: _, ...userSafe } = req.user as any;
+    res.json(userSafe);
+  });
+
   // Eventos
-  app.get(api.events.list.path, async (req, res) => {
+  app.get(api.events.list.path, requireAuth, async (req, res) => {
     const events = await storage.getEvents();
     res.json(events);
   });
 
-  app.get(api.events.get.path, async (req, res) => {
+  app.get(api.events.get.path, requireAuth, async (req, res) => {
     const event = await storage.getEvent(Number(req.params.id));
     if (!event) {
       return res.status(404).json({ message: "Evento não encontrado" });
@@ -22,7 +74,7 @@ export async function registerRoutes(
     res.json(event);
   });
 
-  app.post(api.events.create.path, async (req, res) => {
+  app.post(api.events.create.path, requireRole(...suporte), async (req, res) => {
     try {
       const input = api.events.create.input.parse(req.body);
       const event = await storage.createEvent(input);
@@ -35,7 +87,7 @@ export async function registerRoutes(
     }
   });
 
-  app.put(api.events.update.path, async (req, res) => {
+  app.put(api.events.update.path, requireRole(...suporte), async (req, res) => {
     try {
       const input = api.events.update.input.parse(req.body);
       const event = await storage.updateEvent(Number(req.params.id), input);
@@ -49,7 +101,7 @@ export async function registerRoutes(
   });
 
   // Equipamentos do Evento
-  app.post(api.events.addEquipment.path, async (req, res) => {
+  app.post(api.events.addEquipment.path, requireRole(...suporte), async (req, res) => {
     try {
       const input = api.events.addEquipment.input.parse(req.body);
       const result = await storage.addEventEquipment({ ...input, eventId: Number(req.params.id) });
@@ -62,12 +114,12 @@ export async function registerRoutes(
     }
   });
 
-  app.delete('/api/events/:eventId/equipment/:equipmentId', async (req, res) => {
+  app.delete('/api/events/:eventId/equipment/:equipmentId', requireRole(...suporte), async (req, res) => {
     await storage.deleteEventEquipment(Number(req.params.equipmentId));
     res.status(204).send();
   });
 
-  app.patch(api.events.updateEquipmentStatus.path, async (req, res) => {
+  app.patch(api.events.updateEquipmentStatus.path, requireRole(...suporte), async (req, res) => {
     try {
       const input = api.events.updateEquipmentStatus.input.parse(req.body);
       const result = await storage.updateEventEquipment(Number(req.params.equipmentId), input);
@@ -81,7 +133,7 @@ export async function registerRoutes(
   });
 
   // Técnicos do Evento
-  app.post(api.events.addTechnician.path, async (req, res) => {
+  app.post(api.events.addTechnician.path, requireRole(...suporte), async (req, res) => {
     try {
       const input = api.events.addTechnician.input.parse(req.body);
       const result = await storage.addEventTechnician({ ...input, eventId: Number(req.params.id) });
@@ -94,12 +146,12 @@ export async function registerRoutes(
     }
   });
 
-  app.delete('/api/events/:eventId/technicians/:technicianId', async (req, res) => {
+  app.delete('/api/events/:eventId/technicians/:technicianId', requireRole(...suporte), async (req, res) => {
     await storage.deleteEventTechnician(Number(req.params.technicianId));
     res.status(204).send();
   });
 
-  app.patch(api.events.updateTechnician.path, async (req, res) => {
+  app.patch(api.events.updateTechnician.path, requireRole(...suporte), async (req, res) => {
     try {
       const input = api.events.updateTechnician.input.parse(req.body);
       const result = await storage.updateEventTechnician(Number(req.params.technicianId), input);
@@ -113,12 +165,12 @@ export async function registerRoutes(
   });
 
   // Equipamentos
-  app.get(api.equipment.list.path, async (req, res) => {
+  app.get(api.equipment.list.path, requireAuth, async (req, res) => {
     const eqList = await storage.getEquipmentList();
     res.json(eqList);
   });
 
-  app.post(api.equipment.create.path, async (req, res) => {
+  app.post(api.equipment.create.path, requireRole(...suporte), async (req, res) => {
     try {
       const input = api.equipment.create.input.parse(req.body);
       const eq = await storage.createEquipment(input);
@@ -131,7 +183,7 @@ export async function registerRoutes(
     }
   });
 
-  app.put(api.equipment.update.path, async (req, res) => {
+  app.put(api.equipment.update.path, requireRole(...suporte), async (req, res) => {
     try {
       const input = api.equipment.update.input.parse(req.body);
       const eq = await storage.updateEquipment(Number(req.params.id), input);
@@ -144,18 +196,18 @@ export async function registerRoutes(
     }
   });
 
-  app.delete('/api/equipment/:id', async (req, res) => {
+  app.delete('/api/equipment/:id', requireRole("admin"), async (req, res) => {
     await storage.deleteEquipment(Number(req.params.id));
     res.status(204).send();
   });
 
   // Usuários
-  app.get(api.users.list.path, async (req, res) => {
+  app.get(api.users.list.path, requireAuth, async (req, res) => {
     const userList = await storage.getUsers();
     res.json(userList);
   });
 
-  app.post(api.users.create.path, async (req, res) => {
+  app.post(api.users.create.path, requireRole("admin"), async (req, res) => {
     try {
       const input = api.users.create.input.parse(req.body);
       const user = await storage.createUser(input);
@@ -168,7 +220,7 @@ export async function registerRoutes(
     }
   });
 
-  app.put('/api/users/:id', async (req, res) => {
+  app.put('/api/users/:id', requireRole("admin"), async (req, res) => {
     try {
       const user = await storage.updateUser(Number(req.params.id), req.body);
       res.json(user);
@@ -177,7 +229,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete('/api/users/:id', async (req, res) => {
+  app.delete('/api/users/:id', requireRole("admin"), async (req, res) => {
     await storage.deleteUser(Number(req.params.id));
     res.status(204).send();
   });
@@ -191,9 +243,11 @@ export async function registerRoutes(
 async function seedDatabase() {
   const users = await storage.getUsers();
   if (users.length === 0) {
+    await storage.createUser({ username: "admin", password: "admin123", name: "Administrador DPE-GO", role: "admin" });
     await storage.createUser({ username: "joao.ti", password: "password", name: "João Silva", role: "technician" });
-    await storage.createUser({ username: "maria.ti", password: "password", name: "Maria Oliveira", role: "technician" });
-    await storage.createUser({ username: "admin.almo", password: "password", name: "Admin Almoxarifado", role: "almoxarifado" });
+    await storage.createUser({ username: "maria.almo", password: "password", name: "Maria Oliveira", role: "almoxarifado" });
+    await storage.createUser({ username: "defensor.silva", password: "password", name: "Dr. Carlos Silva", role: "defender" });
+    await storage.createUser({ username: "assessora.lima", password: "password", name: "Dra. Ana Lima", role: "advisor" });
 
     await storage.createEquipment({ name: "Notebook Dell Latitude", serialNumber: "NB-10293", status: "available" });
     await storage.createEquipment({ name: "Impressora Multifuncional HP", serialNumber: "PR-48910", status: "available" });
