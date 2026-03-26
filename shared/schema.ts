@@ -10,7 +10,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
-  role: text("role").notNull().default('technician'), // "admin" | "technician" | "almoxarifado" | "defender" | "advisor"
+  role: text("role").notNull().default('technician'),
 });
 
 export const events = pgTable("events", {
@@ -19,7 +19,7 @@ export const events = pgTable("events", {
   location: text("location").notNull(),
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
-  status: text("status").notNull().default('planning'), // "planning" | "in_progress" | "completed"
+  status: text("status").notNull().default('planning'),
   glpiTicket: text("glpi_ticket"),
   processNumber: text("process_number"),
 });
@@ -49,14 +49,14 @@ export const eventTechnicians = pgTable("event_technicians", {
   attended: boolean("attended").notNull().default(false),
 });
 
-// Base Schemas
+// Esquemas de inserção
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertEventSchema = createInsertSchema(events).omit({ id: true });
 export const insertEquipmentSchema = createInsertSchema(equipment).omit({ id: true });
 export const insertEventEquipmentSchema = createInsertSchema(eventEquipment).omit({ id: true });
 export const insertEventTechnicianSchema = createInsertSchema(eventTechnicians).omit({ id: true });
 
-// Types
+// Tipos base
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
@@ -72,7 +72,7 @@ export type InsertEventEquipment = z.infer<typeof insertEventEquipmentSchema>;
 export type EventTechnician = typeof eventTechnicians.$inferSelect;
 export type InsertEventTechnician = z.infer<typeof insertEventTechnicianSchema>;
 
-// API Request/Response Types
+// Tipos de requisição e resposta da API
 export type CreateEventRequest = InsertEvent;
 export type UpdateEventRequest = Partial<InsertEvent>;
 
@@ -85,7 +85,7 @@ export type UpdateEventEquipmentRequest = Partial<InsertEventEquipment>;
 export type AddEventTechnicianRequest = Omit<InsertEventTechnician, 'eventId'>;
 export type UpdateEventTechnicianRequest = Partial<InsertEventTechnician>;
 
-// Extended Response Types (Joins)
+// Tipos com relações (joins)
 export type EventEquipmentWithDetails = EventEquipment & { equipment: Equipment };
 export type EventTechnicianWithDetails = EventTechnician & { technician: User };
 export type EventDetailsResponse = Event & {

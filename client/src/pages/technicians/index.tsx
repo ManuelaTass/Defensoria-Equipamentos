@@ -33,7 +33,7 @@ function RoleBadge({ role }: { role: string }) {
   return <Badge variant="outline" className={info.className}>{info.label}</Badge>;
 }
 
-// Group configs for filter cards
+// Configurações dos grupos de filtro
 const GROUP_CARDS = [
   {
     key: "all",

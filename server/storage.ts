@@ -11,38 +11,38 @@ import {
 import { eq } from "drizzle-orm";
 
 export interface IStorage {
-  // Users
+  // Usuários
   getUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, user: Partial<InsertUser>): Promise<User>;
   deleteUser(id: number): Promise<void>;
 
-  // Events
+  // Eventos
   getEvents(): Promise<(Event & { technicianCount: number; equipmentCount: number })[]>;
   getEvent(id: number): Promise<EventDetailsResponse | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
   updateEvent(id: number, event: UpdateEventRequest): Promise<Event>;
 
-  // Equipment
+  // Equipamentos
   getEquipmentList(): Promise<Equipment[]>;
   getEquipment(id: number): Promise<Equipment | undefined>;
   createEquipment(equip: InsertEquipment): Promise<Equipment>;
   updateEquipment(id: number, equip: UpdateEquipmentRequest): Promise<Equipment>;
   deleteEquipment(id: number): Promise<void>;
 
-  // Event Equipment
+  // Equipamentos do Evento
   addEventEquipment(data: AddEventEquipmentRequest & { eventId: number }): Promise<EventEquipmentWithDetails>;
   updateEventEquipment(id: number, data: UpdateEventEquipmentRequest): Promise<EventEquipmentWithDetails>;
   deleteEventEquipment(id: number): Promise<void>;
 
-  // Event Technicians
+  // Técnicos do Evento
   addEventTechnician(data: AddEventTechnicianRequest & { eventId: number }): Promise<EventTechnicianWithDetails>;
   updateEventTechnician(id: number, data: UpdateEventTechnicianRequest): Promise<EventTechnicianWithDetails>;
   deleteEventTechnician(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
-  // Users
+  // Usuários
   async getUsers(): Promise<User[]> {
     return await db.select().from(users);
   }
@@ -61,7 +61,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(users).where(eq(users.id, id));
   }
 
-  // Events
+  // Eventos
   async getEvents(): Promise<(Event & { technicianCount: number; equipmentCount: number })[]> {
     const allEvents = await db.select().from(events);
     const allTechs = await db.select().from(eventTechnicians);
@@ -110,7 +110,7 @@ export class DatabaseStorage implements IStorage {
     return updatedEvent;
   }
 
-  // Equipment
+  // Equipamentos
   async getEquipmentList(): Promise<Equipment[]> {
     return await db.select().from(equipment);
   }
@@ -134,7 +134,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(equipment).where(eq(equipment.id, id));
   }
 
-  // Event Equipment
+  // Equipamentos do Evento
   async addEventEquipment(data: AddEventEquipmentRequest & { eventId: number }): Promise<EventEquipmentWithDetails> {
     const [ee] = await db.insert(eventEquipment).values(data).returning();
     const [equip] = await db.select().from(equipment).where(eq(equipment.id, ee.equipmentId));
@@ -151,7 +151,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(eventEquipment).where(eq(eventEquipment.id, id));
   }
 
-  // Event Technicians
+  // Técnicos do Evento
   async addEventTechnician(data: AddEventTechnicianRequest & { eventId: number }): Promise<EventTechnicianWithDetails> {
     const [et] = await db.insert(eventTechnicians).values(data).returning();
     const [tech] = await db.select().from(users).where(eq(users.id, et.technicianId));

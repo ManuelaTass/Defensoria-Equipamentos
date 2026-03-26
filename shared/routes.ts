@@ -21,7 +21,7 @@ export const errorSchemas = {
   }),
 };
 
-// We define our custom full response schemas for relations
+// Schemas de resposta para rotas com relações
 const equipmentResponseSchema = z.custom<typeof equipment.$inferSelect>();
 const userResponseSchema = z.custom<typeof users.$inferSelect>();
 
@@ -86,7 +86,8 @@ export const api = {
     },
     updateEquipmentStatus: {
       method: 'PATCH' as const,
-      path: '/api/events/:eventId/equipment/:equipmentId' as const, // equipmentId here refers to the event_equipment row ID
+      // equipmentId refere-se ao ID da linha em event_equipment, não do equipamento em si
+      path: '/api/events/:eventId/equipment/:equipmentId' as const,
       input: insertEventEquipmentSchema.pick({ status: true }),
       responses: {
         200: eventEquipmentWithDetailsSchema,
@@ -104,7 +105,8 @@ export const api = {
     },
     updateTechnician: {
       method: 'PATCH' as const,
-      path: '/api/events/:eventId/technicians/:technicianId' as const, // technicianId refers to the event_technicians row ID
+      // technicianId refere-se ao ID da linha em event_technicians
+      path: '/api/events/:eventId/technicians/:technicianId' as const,
       input: insertEventTechnicianSchema.partial(),
       responses: {
         200: eventTechnicianWithDetailsSchema,

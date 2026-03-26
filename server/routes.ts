@@ -8,7 +8,7 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // Events
+  // Eventos
   app.get(api.events.list.path, async (req, res) => {
     const events = await storage.getEvents();
     res.json(events);
@@ -17,7 +17,7 @@ export async function registerRoutes(
   app.get(api.events.get.path, async (req, res) => {
     const event = await storage.getEvent(Number(req.params.id));
     if (!event) {
-      return res.status(404).json({ message: "Event not found" });
+      return res.status(404).json({ message: "Evento não encontrado" });
     }
     res.json(event);
   });
@@ -48,7 +48,7 @@ export async function registerRoutes(
     }
   });
 
-  // Event Equipment
+  // Equipamentos do Evento
   app.post(api.events.addEquipment.path, async (req, res) => {
     try {
       const input = api.events.addEquipment.input.parse(req.body);
@@ -80,7 +80,7 @@ export async function registerRoutes(
     }
   });
 
-  // Event Technicians
+  // Técnicos do Evento
   app.post(api.events.addTechnician.path, async (req, res) => {
     try {
       const input = api.events.addTechnician.input.parse(req.body);
@@ -112,7 +112,7 @@ export async function registerRoutes(
     }
   });
 
-  // Equipment
+  // Equipamentos
   app.get(api.equipment.list.path, async (req, res) => {
     const eqList = await storage.getEquipmentList();
     res.json(eqList);
@@ -144,7 +144,12 @@ export async function registerRoutes(
     }
   });
 
-  // Users
+  app.delete('/api/equipment/:id', async (req, res) => {
+    await storage.deleteEquipment(Number(req.params.id));
+    res.status(204).send();
+  });
+
+  // Usuários
   app.get(api.users.list.path, async (req, res) => {
     const userList = await storage.getUsers();
     res.json(userList);
@@ -177,13 +182,7 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
-  // Equipment Delete
-  app.delete('/api/equipment/:id', async (req, res) => {
-    await storage.deleteEquipment(Number(req.params.id));
-    res.status(204).send();
-  });
-
-  // Basic seed function
+  // Carga inicial de dados
   await seedDatabase();
 
   return httpServer;
@@ -199,7 +198,7 @@ async function seedDatabase() {
     await storage.createEquipment({ name: "Notebook Dell Latitude", serialNumber: "NB-10293", status: "available" });
     await storage.createEquipment({ name: "Impressora Multifuncional HP", serialNumber: "PR-48910", status: "available" });
     await storage.createEquipment({ name: "Switch 8 portas Cisco", serialNumber: "SW-9912", status: "available" });
-    
+
     await storage.createEvent({
       name: "Itinerante - Cidade de Goiás",
       location: "Praça do Coreto, Goiás - GO",
