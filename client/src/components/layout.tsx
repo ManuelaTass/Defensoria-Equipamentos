@@ -21,9 +21,10 @@ import {
   Users,
   ShieldAlert,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  UserCog
 } from "lucide-react";
-import { useAuth, isSuporte, roleLabel } from "@/hooks/use-auth";
+import { useAuth, isSuporte, isAdmin, roleLabel } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -97,6 +98,41 @@ function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isAdmin(user?.role ?? "") && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-green-300/60 mt-2 mb-2 text-xs font-semibold tracking-wider uppercase">
+              Administração
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {[{ title: "Gerenciar Usuários", url: "/admin/usuarios", icon: UserCog }].map(item => {
+                  const isActive = location.startsWith(item.url);
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        className={`
+                          my-1 px-4 py-3 h-auto transition-all duration-200 rounded-lg
+                          ${isActive
+                            ? "bg-white/15 text-white font-semibold border-l-2 border-green-300"
+                            : "text-green-100 hover:bg-white/10 hover:text-white"
+                          }
+                        `}
+                      >
+                        <Link href={item.url} className="flex items-center gap-3">
+                          <item.icon size={18} className={isActive ? "text-green-300" : "text-green-300/70"} />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-white/10">

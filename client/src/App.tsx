@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthContext, useAuthSetup, isSuporte } from "@/hooks/use-auth";
+import { AuthContext, useAuthSetup, isSuporte, isAdmin } from "@/hooks/use-auth";
 
 // Páginas
 import Dashboard from "./pages/dashboard";
@@ -11,6 +11,7 @@ import EventsPage from "./pages/events/index";
 import EventDetailPage from "./pages/events/detail";
 import EquipmentPage from "./pages/equipment/index";
 import TechniciansPage from "./pages/technicians/index";
+import AdminUsersPage from "./pages/admin/users";
 import LoginPage from "./pages/login";
 import NotFound from "@/pages/not-found";
 
@@ -54,6 +55,13 @@ function AppContent() {
             if (!auth.user) return <Redirect to="/login" />;
             if (!isSuporte(auth.user.role)) return <Redirect to="/" />;
             return <TechniciansPage />;
+          }}
+        </Route>
+        <Route path="/admin/usuarios">
+          {() => {
+            if (!auth.user) return <Redirect to="/login" />;
+            if (!isAdmin(auth.user.role)) return <Redirect to="/" />;
+            return <AdminUsersPage />;
           }}
         </Route>
 
