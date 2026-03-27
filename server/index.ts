@@ -100,9 +100,8 @@ app.use((req, res, next) => {
     return res.status(status).json({ message });
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  // Inicializa o Vite apenas em desenvolvimento e após registrar todas as rotas,
+  // para que a rota coringa do Vite não interfira com as rotas da API
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   } else {
@@ -110,10 +109,9 @@ app.use((req, res, next) => {
     await setupVite(httpServer, app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
+  // Sempre usar a porta definida na variável de ambiente PORT.
+  // Outras portas são bloqueadas pelo firewall. Padrão: 5000.
+  // Este servidor atende tanto a API quanto o frontend.
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen(
     {

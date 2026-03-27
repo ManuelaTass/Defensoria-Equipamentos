@@ -1,0 +1,14 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "JAC3cPc9SIvWXwNpf7DDE"
+uri = "file://COMO-RODAR.md"
+type = "text"
+title = "Como Rodar o Projeto Localmente"
+
+[[outputs]]
+id = "vN8P9gqNxQgBXgBunRRAa"
+uri = "file://DOCUMENTACAO.md"
+type = "text"
+title = "Documentação Completa do Sistema"
