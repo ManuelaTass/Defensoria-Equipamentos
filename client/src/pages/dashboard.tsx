@@ -92,7 +92,7 @@ export default function Dashboard() {
         <p className="text-muted-foreground mt-2">Resumo das operações de Itinerantes e Almoxarifado.</p>
       </div>
 
-      {/* Stat cards */}
+      {/* Cards de resumo */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map((card) => (
           <Link key={card.label} href={card.href}>
@@ -113,7 +113,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Events Panel */}
+      {/* Painel de eventos */}
       <Card className="shadow-md border-border/50 overflow-hidden">
         <CardHeader className="bg-secondary/30 border-b pb-4 flex flex-row items-center justify-between">
           <div>
@@ -140,7 +140,7 @@ export default function Dashboard() {
                 return (
                   <Link key={event.id} href={`/eventos/${event.id}`}>
                     <div className={`rounded-xl border-2 ${cfg.border} ${cfg.bg} overflow-hidden hover:shadow-lg transition-all cursor-pointer group h-full flex flex-col`}>
-                      {/* Colored header strip */}
+                      {/* Faixa colorida do cabeçalho */}
                       <div className={`${cfg.headerBg} px-4 py-2.5 flex items-center justify-between gap-2`}>
                         <h3 className={`font-semibold text-sm ${cfg.text} leading-tight group-hover:underline line-clamp-1`}>
                           {event.name.trim()}
@@ -151,7 +151,7 @@ export default function Dashboard() {
                         </span>
                       </div>
 
-                      {/* Body */}
+                      {/* Corpo do card */}
                       <div className="p-3 flex flex-col gap-2 flex-1">
                         <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
                           <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 text-primary/50" />
@@ -185,7 +185,7 @@ export default function Dashboard() {
                           </div>
                         )}
 
-                        {/* Counts footer */}
+                        {/* Rodapé com contadores */}
                         <div className="flex items-center gap-3 mt-auto pt-2 border-t border-current/5">
                           <span className="flex items-center gap-1 text-xs text-muted-foreground">
                             <Users className="h-3 w-3" />

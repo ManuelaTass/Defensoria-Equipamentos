@@ -193,7 +193,7 @@ export default function EquipmentPage() {
         </div>
       </div>
 
-      {/* Edit Dialog */}
+      {/* Diálogo de Edição */}
       <Dialog open={!!editItem} onOpenChange={(o) => !o && setEditItem(null)}>
         <DialogContent>
           <form onSubmit={handleEdit} key={editItem?.id}>
@@ -212,7 +212,7 @@ export default function EquipmentPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Clickable Status Filter Cards */}
+      {/* Cards de Filtro por Status */}
       <div className="grid grid-cols-3 md:grid-cols-5 gap-3 mb-5">
         {STATUS_CARDS.map(card => {
           const count = countByStatus(card.key);
@@ -235,7 +235,7 @@ export default function EquipmentPage() {
         })}
       </div>
 
-      {/* CSV hint */}
+      {/* Dica de importação CSV */}
       <div className="mb-4 flex items-center gap-2 text-xs text-muted-foreground">
         <FileSpreadsheet className="h-3.5 w-3.5 flex-shrink-0" />
         <span>Importe planilhas <strong>.csv</strong> com colunas: <code className="bg-secondary px-1 rounded">Nome, NúmeroDeSérie, Localização</code></span>

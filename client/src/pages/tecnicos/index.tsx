@@ -175,7 +175,7 @@ export default function TechniciansPage() {
         </Dialog>
       </div>
 
-      {/* Edit Dialog */}
+      {/* Diálogo de Edição */}
       <Dialog open={!!editUser} onOpenChange={(o) => !o && setEditUser(null)}>
         <DialogContent>
           <form onSubmit={handleEdit} key={editUser?.id}>
@@ -207,7 +207,7 @@ export default function TechniciansPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Group Filter Cards */}
+      {/* Cards de Filtro por Grupo */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         {GROUP_CARDS.map(card => {
           const count = countForGroup(card.key);
