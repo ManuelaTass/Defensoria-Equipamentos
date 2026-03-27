@@ -1,5 +1,5 @@
 import { Layout } from "@/components/layout";
-import { useUsers } from "@/hooks/use-users";
+import { useUsers } from "@/hooks/use-usuarios";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, Plus, Pencil, Trash2, ShieldCheck, Cpu, Users } from "lucide-react";
@@ -19,7 +19,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { TablePager, usePagination } from "@/components/table-pager";
+import { TablePager, usePagination } from "@/components/paginacao-tabela";
 import type { User } from "@shared/schema";
 
 function RoleBadge({ role }: { role: string }) {

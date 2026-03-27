@@ -3,17 +3,18 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthContext, useAuthSetup, isSuporte, isAdmin } from "@/hooks/use-auth";
+import { AuthContext, useAuthSetup, isSuporte, isAdmin } from "@/hooks/use-autenticacao";
 
 // Páginas
-import Dashboard from "./pages/dashboard";
-import EventsPage from "./pages/events/index";
-import EventDetailPage from "./pages/events/detail";
-import EquipmentPage from "./pages/equipment/index";
-import TechniciansPage from "./pages/technicians/index";
-import AdminUsersPage from "./pages/admin/users";
+import Painel from "./pages/dashboard";
+import EventosPage from "./pages/eventos/index";
+import DetalheEventoPage from "./pages/eventos/detail";
+import EquipamentosPage from "./pages/equipamentos/index";
+import TecnicosPage from "./pages/tecnicos/index";
+import AdminUsuariosPage from "./pages/administracao/users";
+import CalendarioPage from "./pages/calendario/index";
 import LoginPage from "./pages/login";
-import NotFound from "@/pages/not-found";
+import NaoEncontrado from "@/pages/nao-encontrado";
 
 function AppContent() {
   const auth = useAuthSetup();
@@ -35,37 +36,40 @@ function AppContent() {
         <Route path="/login" component={LoginPage} />
 
         <Route path="/">
-          {() => !auth.user ? <Redirect to="/login" /> : <Dashboard />}
+          {() => !auth.user ? <Redirect to="/login" /> : <Painel />}
         </Route>
-        <Route path="/events">
-          {() => !auth.user ? <Redirect to="/login" /> : <EventsPage />}
+        <Route path="/calendario">
+          {() => !auth.user ? <Redirect to="/login" /> : <CalendarioPage />}
         </Route>
-        <Route path="/events/:id">
-          {() => !auth.user ? <Redirect to="/login" /> : <EventDetailPage />}
+        <Route path="/eventos">
+          {() => !auth.user ? <Redirect to="/login" /> : <EventosPage />}
         </Route>
-        <Route path="/equipment">
+        <Route path="/eventos/:id">
+          {() => !auth.user ? <Redirect to="/login" /> : <DetalheEventoPage />}
+        </Route>
+        <Route path="/equipamentos">
           {() => {
             if (!auth.user) return <Redirect to="/login" />;
             if (!isSuporte(auth.user.role)) return <Redirect to="/" />;
-            return <EquipmentPage />;
+            return <EquipamentosPage />;
           }}
         </Route>
-        <Route path="/technicians">
+        <Route path="/tecnicos">
           {() => {
             if (!auth.user) return <Redirect to="/login" />;
             if (!isSuporte(auth.user.role)) return <Redirect to="/" />;
-            return <TechniciansPage />;
+            return <TecnicosPage />;
           }}
         </Route>
-        <Route path="/admin/usuarios">
+        <Route path="/administracao/usuarios">
           {() => {
             if (!auth.user) return <Redirect to="/login" />;
             if (!isAdmin(auth.user.role)) return <Redirect to="/" />;
-            return <AdminUsersPage />;
+            return <AdminUsuariosPage />;
           }}
         </Route>
 
-        <Route component={NotFound} />
+        <Route component={NaoEncontrado} />
       </Switch>
     </AuthContext.Provider>
   );

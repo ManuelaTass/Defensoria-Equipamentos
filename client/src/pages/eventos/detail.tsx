@@ -6,9 +6,9 @@ import {
   useUpdateEquipmentStatus, 
   useAddEventTechnician, 
   useUpdateEventTechnician 
-} from "@/hooks/use-events";
-import { useEquipmentList } from "@/hooks/use-equipment";
-import { useUsers } from "@/hooks/use-users";
+} from "@/hooks/use-eventos";
+import { useEquipmentList } from "@/hooks/use-equipamentos";
+import { useUsers } from "@/hooks/use-usuarios";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,14 +27,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useParams, Link } from "wouter";
 import { Loader2, ArrowLeft, Calendar, MapPin, ChevronRight, Package, UserPlus, Plus, Pencil, Trash2, Ticket, FileText } from "lucide-react";
-import { EventStatusBadge, EventEquipmentStatusBadge } from "@/components/status-badges";
+import { EventStatusBadge, EventEquipmentStatusBadge } from "@/components/badges-status";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, isSuporte } from "@/hooks/use-auth";
+import { useAuth, isSuporte } from "@/hooks/use-autenticacao";
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -93,7 +93,7 @@ export default function EventDetailPage() {
       <Layout>
         <div className="text-center py-20">
           <h2 className="text-2xl font-bold">Evento não encontrado</h2>
-          <Link href="/events" className="text-primary mt-4 inline-block hover:underline">Voltar para eventos</Link>
+          <Link href="/eventos" className="text-primary mt-4 inline-block hover:underline">Voltar para eventos</Link>
         </div>
       </Layout>
     );
@@ -157,7 +157,7 @@ export default function EventDetailPage() {
   return (
     <Layout>
       <div className="mb-6">
-        <Link href="/events" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary mb-4 transition-colors">
+        <Link href="/eventos" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary mb-4 transition-colors">
           <ArrowLeft className="w-4 h-4 mr-1" /> Voltar
         </Link>
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">

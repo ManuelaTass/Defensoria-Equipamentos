@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout";
-import { useUsers } from "@/hooks/use-users";
-import { useAuth, roleLabel } from "@/hooks/use-auth";
+import { useUsers } from "@/hooks/use-usuarios";
+import { useAuth, roleLabel } from "@/hooks/use-autenticacao";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";

@@ -22,9 +22,10 @@ import {
   ShieldAlert,
   LogOut,
   ChevronDown,
-  UserCog
+  UserCog,
+  Calendar
 } from "lucide-react";
-import { useAuth, isSuporte, isAdmin, roleLabel } from "@/hooks/use-auth";
+import { useAuth, isSuporte, isAdmin, roleLabel } from "@/hooks/use-autenticacao";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -38,10 +39,11 @@ function AppSidebar() {
   const { user, logout } = useAuth();
 
   const navItems = [
-    { title: "Dashboard", url: "/", icon: LayoutDashboard, acesso: true },
-    { title: "Eventos Itinerantes", url: "/events", icon: CalendarDays, acesso: true },
-    { title: "Equipamentos", url: "/equipment", icon: MonitorDot, acesso: isSuporte(user?.role ?? "") },
-    { title: "Técnicos", url: "/technicians", icon: Users, acesso: isSuporte(user?.role ?? "") },
+    { title: "Painel", url: "/", icon: LayoutDashboard, acesso: true },
+    { title: "Calendário", url: "/calendario", icon: Calendar, acesso: true },
+    { title: "Eventos Itinerantes", url: "/eventos", icon: CalendarDays, acesso: true },
+    { title: "Equipamentos", url: "/equipamentos", icon: MonitorDot, acesso: isSuporte(user?.role ?? "") },
+    { title: "Técnicos", url: "/tecnicos", icon: Users, acesso: isSuporte(user?.role ?? "") },
   ].filter(item => item.acesso);
 
   const iniciais = user?.name
@@ -106,7 +108,7 @@ function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {[{ title: "Gerenciar Usuários", url: "/admin/usuarios", icon: UserCog }].map(item => {
+                {[{ title: "Gerenciar Usuários", url: "/administracao/usuarios", icon: UserCog }].map(item => {
                   const isActive = location.startsWith(item.url);
                   return (
                     <SidebarMenuItem key={item.title}>

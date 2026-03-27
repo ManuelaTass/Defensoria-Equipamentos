@@ -1,5 +1,5 @@
 import { Layout } from "@/components/layout";
-import { useEvents, useCreateEvent } from "@/hooks/use-events";
+import { useEvents, useCreateEvent } from "@/hooks/use-eventos";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,10 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Loader2, Plus, Search, Calendar as CalendarIcon, MapPin, Users, Package } from "lucide-react";
 import { useState } from "react";
-import { EventStatusBadge } from "@/components/status-badges";
+import { EventStatusBadge } from "@/components/badges-status";
 import { Link } from "wouter";
-import { TablePager, usePagination } from "@/components/table-pager";
-import { useAuth, isSuporte } from "@/hooks/use-auth";
+import { TablePager, usePagination } from "@/components/paginacao-tabela";
+import { useAuth, isSuporte } from "@/hooks/use-autenticacao";
 
 export default function EventsPage() {
   const { data: events, isLoading } = useEvents();
@@ -167,7 +167,7 @@ export default function EventsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Link href={`/events/${evt.id}`}>
+                      <Link href={`/eventos/${evt.id}`}>
                         <Button variant="outline" size="sm" className="hover:border-primary hover:text-primary transition-colors">
                           Gerenciar
                         </Button>

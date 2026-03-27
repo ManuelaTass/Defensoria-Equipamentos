@@ -1,5 +1,5 @@
 import { Layout } from "@/components/layout";
-import { useEquipmentList, useCreateEquipment, useUpdateEquipment } from "@/hooks/use-equipment";
+import { useEquipmentList, useCreateEquipment, useUpdateEquipment } from "@/hooks/use-equipamentos";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,11 +15,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, Plus, Search, Monitor, Pencil, Trash2, FileSpreadsheet, Package } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
-import { GlobalEquipmentStatusBadge } from "@/components/status-badges";
+import { GlobalEquipmentStatusBadge } from "@/components/badges-status";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { TablePager, usePagination } from "@/components/table-pager";
+import { TablePager, usePagination } from "@/components/paginacao-tabela";
 import { useLocation } from "wouter";
 import type { Equipment } from "@shared/schema";
 

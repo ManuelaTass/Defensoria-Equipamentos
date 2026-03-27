@@ -1,7 +1,7 @@
 import { Layout } from "@/components/layout";
-import { useEvents } from "@/hooks/use-events";
-import { useEquipmentList } from "@/hooks/use-equipment";
-import { useUsers } from "@/hooks/use-users";
+import { useEvents } from "@/hooks/use-eventos";
+import { useEquipmentList } from "@/hooks/use-equipamentos";
+import { useUsers } from "@/hooks/use-usuarios";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Calendar, Monitor, Activity, MapPin, Users, Package, ChevronRight, Ticket, FileText } from "lucide-react";
 import { Link } from "wouter";
@@ -75,10 +75,10 @@ export default function Dashboard() {
   const equipmentInUse = equipment?.filter(e => e.status === 'in_use') || [];
 
   const statCards = [
-    { label: "Eventos em Andamento", value: activeEvents.length, icon: Activity, href: "/events?status=in_progress", color: "text-emerald-600 bg-emerald-50" },
-    { label: "Eventos Planejados", value: planningEvents.length, icon: Calendar, href: "/events?status=planning", color: "text-blue-600 bg-blue-50" },
-    { label: "Equips. em Uso", value: equipmentInUse.length, icon: Monitor, href: "/equipment?status=in_use", color: "text-amber-600 bg-amber-50" },
-    { label: "Servidores Cadastrados", value: (users?.length || 0), icon: Users, href: "/technicians", color: "text-purple-600 bg-purple-50" },
+    { label: "Eventos em Andamento", value: activeEvents.length, icon: Activity, href: "/eventos?status=in_progress", color: "text-emerald-600 bg-emerald-50" },
+    { label: "Eventos Planejados", value: planningEvents.length, icon: Calendar, href: "/eventos?status=planning", color: "text-blue-600 bg-blue-50" },
+    { label: "Equips. em Uso", value: equipmentInUse.length, icon: Monitor, href: "/equipamentos?status=in_use", color: "text-amber-600 bg-amber-50" },
+    { label: "Servidores Cadastrados", value: (users?.length || 0), icon: Users, href: "/tecnicos", color: "text-purple-600 bg-purple-50" },
   ];
 
   const allEvents = [...(events || [])].sort((a, b) =>
@@ -120,7 +120,7 @@ export default function Dashboard() {
             <CardTitle className="text-base">Todos os Eventos</CardTitle>
             <CardDescription>Visão geral com status, localização e equipe.</CardDescription>
           </div>
-          <Link href="/events">
+          <Link href="/eventos">
             <span className="text-xs text-primary font-medium hover:underline flex items-center gap-1">
               Ver todos <ChevronRight className="h-3 w-3" />
             </span>
@@ -138,7 +138,7 @@ export default function Dashboard() {
                 const cfg = STATUS_CONFIG[event.status] ?? STATUS_CONFIG.planning;
                 const ev = event as any;
                 return (
-                  <Link key={event.id} href={`/events/${event.id}`}>
+                  <Link key={event.id} href={`/eventos/${event.id}`}>
                     <div className={`rounded-xl border-2 ${cfg.border} ${cfg.bg} overflow-hidden hover:shadow-lg transition-all cursor-pointer group h-full flex flex-col`}>
                       {/* Colored header strip */}
                       <div className={`${cfg.headerBg} px-4 py-2.5 flex items-center justify-between gap-2`}>

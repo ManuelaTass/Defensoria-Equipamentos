@@ -17,22 +17,42 @@ O workflow `Start application` executa `npm run dev`, que sobe o Express na port
 
 ```
 server/
-  index.ts      — Entry point: configura sessão, passport, middlewares
-  auth.ts       — Estratégia Passport (local) e serialização de sessão
-  routes.ts     — Rotas da API com controle de acesso por perfil
-  storage.ts    — Camada de acesso ao banco (interface IStorage + DatabaseStorage)
-  db.ts         — Conexão Drizzle ORM
+  index.ts            — Entry point: configura sessão, passport, middlewares
+  auth.ts             — Estratégia Passport (local) e serialização de sessão
+  routes.ts           — Rotas da API com controle de acesso por perfil
+  storage.ts          — Camada de acesso ao banco (interface IStorage + DatabaseStorage)
+  db.ts               — Conexão Drizzle ORM
 
 shared/
-  schema.ts     — Tabelas, schemas de inserção e tipos TypeScript
-  routes.ts     — Definição tipada das rotas da API (contratos)
+  schema.ts           — Tabelas, schemas de inserção e tipos TypeScript
+  routes.ts           — Definição tipada das rotas da API (contratos)
 
 client/src/
-  App.tsx       — Roteamento, AuthProvider, guards de rota
-  pages/        — Dashboard, Eventos, Equipamentos, Técnicos, Login
-  hooks/        — use-auth, use-events, use-equipment, use-users
-  components/   — Layout (sidebar + header), TablePager, StatusBadges
+  App.tsx             — Roteamento, AuthProvider, guards de rota
+  pages/
+    dashboard.tsx     — Painel principal
+    login.tsx         — Tela de login
+    nao-encontrado.tsx — Página 404
+    calendario/       — Calendário mensal de eventos
+    eventos/          — Lista e detalhe de eventos
+    equipamentos/     — Gerenciamento de equipamentos
+    tecnicos/         — Lista de técnicos/servidores
+    administracao/    — Área admin (gerenciar usuários)
+  hooks/              — use-autenticacao, use-eventos, use-equipamentos, use-usuarios
+  components/         — Layout (sidebar + header), badges-status, paginacao-tabela
 ```
+
+## Rotas do sistema
+
+| URL | Página |
+|---|---|
+| `/` | Painel (dashboard) |
+| `/calendario` | Calendário de eventos |
+| `/eventos` | Lista de eventos itinerantes |
+| `/eventos/:id` | Detalhe de um evento |
+| `/equipamentos` | Gerenciamento de equipamentos |
+| `/tecnicos` | Lista de técnicos/servidores |
+| `/administracao/usuarios` | Gerenciar usuários (admin only) |
 
 ## Perfis de Acesso
 
@@ -59,3 +79,8 @@ client/src/
 ## Tema Visual
 
 Verde institucional DPE-GO: `hsl(152, 70%, 22%)` — aplicado na sidebar e elementos primários.
+
+## Documentação
+
+- `COMO-RODAR.md` — Passo a passo para rodar o projeto localmente
+- `DOCUMENTACAO.md` — Explicação detalhada do sistema e do código
